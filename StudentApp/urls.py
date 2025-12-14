@@ -9,5 +9,8 @@ urlpatterns = [
     path('apply-leave/', views.apply_leave, name='apply_leave'),
     path('attendance/manage/', views.admin_mark_attendance, name='admin_attendance'),
     path('attendance/my-stats/', views.student_my_attendance, name='my_attendance'),
-    
+    path('courses/', views.course_list, name='course_list'),
+    path('enroll/<int:course_id>/', views.enroll_course, name='enroll_course'),
+    path('enroll/success/<int:enrollment_id>/', views.enroll_success, name='enroll_success'),
+    path('apply/<int:course_id>/', views.guest_admission, name='guest_admission'),
 ]

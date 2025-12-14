@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import LeaveApplication,Student,Attendance,Course
+from .models import AdmissionRequest, Enrollment, LeaveApplication,Student,Attendance,Course
 from .forms import LeaveForm
 from django.utils import timezone
 from django.contrib.admin.views.decorators import staff_member_required
@@ -24,17 +24,37 @@ def student_login(request):
     return render(request, 'index.html')
 
 # --- VIEW 2: DASHBOARD ---
-@login_required(login_url='login')
+@login_required(login_url='login')  # Force them to login first
 def dashboard(request):
-    try:
-        # Try to find the student profile linked to this user
-        student_profile = Student.objects.get(user=request.user)
-    except Student.DoesNotExist:
-        student_profile = None
+    user = request.user
+    
+    # 1. If the user is an Admin/Staff, show a different view or just the sidebar links
+    if user.is_staff:
+        # You can pass total student count, etc., for admins here
+        return render(request, 'dashboard.html', {'is_admin': True})
 
+    # 2. If it's a Student, try to get their profile
+    try:
+        student_profile = Student.objects.get(user=user)
+    except Student.DoesNotExist:
+        # If they are logged in but don't have a Student profile yet (e.g., just signed up)
+        return render(request, 'dashboard.html', {
+            'error': 'Profile not found. Please contact admin.'
+        })
+
+    # 3. Calculate Attendance Percentage (Optional Logic)
+    # This is a simple calculation: (Days Present / Total Days) * 100
+    total_days = Attendance.objects.filter(student=student_profile).count()
+    present_days = Attendance.objects.filter(student=student_profile, status='Present').count()
+    
+    attendance_percentage = 0
+    if total_days > 0:
+        attendance_percentage = int((present_days / total_days) * 100)
+
+    # 4. Pass data to the template
     context = {
         'student': student_profile,
-        'user': request.user
+        'attendance_percentage': attendance_percentage,
     }
     return render(request, 'dashboard.html', context)
 
@@ -143,3 +163,82 @@ def course_list(request):
     
     # Render the course.html template with the data
     return render(request, 'course.html', context)
+
+
+@login_required(login_url='login')
+def enroll_course(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+    
+    # Now it is safe to check for the student profile because the user is definitely logged in.
+    if not hasattr(request.user, 'student'):
+        from .models import Student
+        import uuid
+        Student.objects.create(user=request.user, student_id=str(uuid.uuid4())[:8])
+
+    if request.method == 'POST':
+        # 1. UPDATE STUDENT DETAILS FIRST
+        try:
+            student = request.user.student
+        except Student.DoesNotExist:
+             # Just in case the signal didn't work, create it again safely
+             from .models import Student
+             import uuid
+             student = Student.objects.create(user=request.user, student_id=str(uuid.uuid4())[:8])
+
+        student.phone = request.POST.get('phone')
+        student.address = request.POST.get('address')
+        student.gender = request.POST.get('gender')
+        student.save()
+
+        # 2. CREATE ENROLLMENT
+        selected_mode = request.POST.get('payment_mode')
+        
+        enrollment = Enrollment(
+            student_user=request.user,
+            course=course,
+            payment_mode=selected_mode,
+            amount_paid=5000 if selected_mode != 'full' else course.price
+        )
+        enrollment.save()
+        
+        return redirect('enroll_success', enrollment_id=enrollment.id) 
+
+    context = {
+        'course': course,
+    }
+    return render(request, 'enroll_payment.html', context)
+
+def enroll_success(request, enrollment_id):
+    # Fetch the enrollment record by ID
+    enrollment = get_object_or_404(Enrollment, id=enrollment_id)
+    
+    context = {
+        'enrollment': enrollment,
+        'course': enrollment.course
+    }
+    return render(request, 'enroll_success.html', context)
+
+
+def guest_admission(request, course_id):
+    course = get_object_or_404(Course, id=course_id)
+
+    if request.method == 'POST':
+        # Get data from the form
+        name = request.POST.get('full_name')
+        phone = request.POST.get('phone')
+        email = request.POST.get('email')
+        address = request.POST.get('address')
+        
+        # Save to the new Request table
+        AdmissionRequest.objects.create(
+            full_name=name,
+            phone=phone,
+            email=email,
+            address=address,
+            course=course
+        )
+        
+        # Show a success message
+        return render(request, 'admission_sent.html')
+
+    return render(request, 'guest_form.html', {'course': course})
