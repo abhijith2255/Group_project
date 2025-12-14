@@ -3,6 +3,7 @@ from django.db import models
 # Create your models here.
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 # --- 1. Onboarding & Profile ---
 from django.db import models
@@ -99,3 +100,23 @@ class Placement(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE)
     willing_to_be_placed = models.BooleanField(default=True)
     interview_status = models.CharField(max_length=50, default='Ready')
+
+class Attendance(models.Model):
+    STATUS_CHOICES = [
+        ('Present', 'Present'),
+        ('Absent', 'Absent'),
+        ('Late', 'Late'),
+    ]
+
+    # Link to your existing Student model
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+
+    class Meta:
+        # Prevents duplicate attendance for the same student on the same day
+        unique_together = ['student', 'date']
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.student.student_id} - {self.date} - {self.status}"

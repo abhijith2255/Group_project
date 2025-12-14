@@ -42,12 +42,23 @@
 <body>
 
     <div class="sidebar">
-        <h2>Student ERP</h2>
+        {% if user.is_staff %}
+         <h2>Admin</h2>
+        {% else %}
+         <h2>Student ERP</h2>
+        {% endif %}
+        
         <a href="#">🏠 Dashboard</a>
         <a href="{% url 'student_profile' %}">👤 My Profile</a>
         <a href="#">💳 Pay Fees</a>
         <a href="#">📚 LMS & Books</a>
-        <a href="#">📅 Attendance</a>
+    {% if user.is_staff %}
+        <a href="{% url 'admin_attendance' %}">📅Manage Attendance</a>
+    {% endif %}
+
+    {% if not user.is_staff %}
+        <a href="{% url 'my_attendance' %}">📅My Attendance</a>
+    {% endif %}
         <a href="{% url 'apply_leave' %}">🛌 Apply for Leave</a>
         <a href="#">📝 Exam Results</a>
         <a href="{% url 'logout' %}" class="logout">Logout</a>
