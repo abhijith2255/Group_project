@@ -1,0 +1,25 @@
+{% extends 'dashboard_student.html' %} {% block content %}
+<div class="container mt-4">
+    <h2>My Classroom: {{ student.batch_no }}</h2>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card p-4 shadow-sm">
+                <h4><i class="fas fa-laptop-code"></i> Learning Management System</h4>
+                <p>Access your recorded videos and notes.</p>
+                <a href="https://lms.yourwebsite.com" target="_blank" class="btn btn-primary">Open LMS Portal</a>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card p-4 shadow-sm">
+                <h4><i class="fas fa-calendar-alt"></i> Weekly Timetable</h4>
+                <table class="table table-bordered mt-2">
+                    <tr><th>Mon-Fri</th><td>10:00 AM - 12:00 PM (Live Class)</td></tr>
+                    <tr><th>Saturday</th><td>02:00 PM - 04:00 PM (Lab/Practical)</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

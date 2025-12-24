@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Enrollment Payment</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body class="bg-light">
+
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-dark text-white text-center">
+                    <h3>Secure Your Seat: {{ course.name }}</h3>
+                    <p class="mb-0">Course Fee: <strong>${{ course.price }}</strong></p>
+                </div>
+                <div class="card-body">
+
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <h5 class="text-primary mb-3">1. Personal Details</h5>
+                        <div class="form-row">
+                            <div class="col">
+                                <input type="text" name="full_name" class="form-control" placeholder="Full Name" required>
+                            </div>
+                            <div class="col">
+                                <input type="text" name="phone" class="form-control" placeholder="Phone Number" required>
+                            </div>
+                        </div>
+                        <div class="form-group mt-3">
+                            <input type="email" name="email" class="form-control" placeholder="Email Address" required>
+                        </div>
+
+                        <hr>
+
+                        <h5 class="text-primary mb-3">2. Select Payment Mode</h5>
+                        <div class="form-group">
+                            <label>How do you want to pay?</label>
+                            <select name="payment_mode" id="paymentMode" class="form-control" onchange="updateInstructions()">
+                                <option value="FULL">Full Payment (One Time)</option>
+                                <option value="EMI">EMI (Installments via PDC)</option>
+                                <option value="LOAN">Student Loan (Bank Sanction)</option>
+                            </select>
+                        </div>
+
+                        <div class="alert alert-info" id="bankInfo">
+                            <strong>Bank Transfer Details:</strong><br>
+                            Account Name: StudyLab Pvt Ltd<br>
+                            Account No: 1234567890 | IFSC: HDFC000123
+                        </div>
+
+                        <div class="form-group">
+                            <label id="uploadLabel">Upload Payment Screenshot</label>
+                            <input type="file" name="receipt" class="form-control-file border p-2" required>
+                            <small id="uploadHelp" class="form-text text-muted">
+                                Please transfer the Booking Fee ($500) and upload the screenshot.
+                            </small>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg btn-block mt-4">Submit Application</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateInstructions() {
+        var mode = document.getElementById("paymentMode").value;
+        var label = document.getElementById("uploadLabel");
+        var help = document.getElementById("uploadHelp");
+        var bankBox = document.getElementById("bankInfo");
+
+        if (mode === 'FULL') {
+            label.innerText = "Upload Full Payment Receipt";
+            help.innerText = "Please transfer the full amount (${{ course.price }}) to the bank details above.";
+            bankBox.innerHTML = "<strong>Bank Transfer Details:</strong><br>Account: StudyLab Pvt Ltd<br>Acc No: 1234567890";
+        } 
+        else if (mode === 'EMI') {
+            label.innerText = "Upload Booking Fee Receipt + PDC Photo";
+            help.innerText = "Pay Booking Fee ($500) and upload photo of 1st Cheque or Transaction.";
+            bankBox.innerHTML = "<strong>EMI Option Selected:</strong><br>Pay $500 Booking Fee now. Submit Post-Dated Cheques (PDC) upon visiting the center.";
+        } 
+        else if (mode === 'LOAN') {
+            label.innerText = "Upload Loan Sanction Letter / Application";
+            help.innerText = "Upload proof that you have applied for a loan or the bank sanction letter.";
+            bankBox.innerHTML = "<strong>Loan Process:</strong><br>Our team will provide you with the Admission Letter required by your bank after you submit this form.";
+        }
+    }
+</script>
+
+</body>
+</html>

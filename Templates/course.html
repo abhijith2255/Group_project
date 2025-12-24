@@ -168,7 +168,11 @@
               </li>
               
               <li>
-                  <a href="#" class="btn btn-primary">Take This Course</a>
+                  {% if user.is_authenticated %}
+    <a href="{% url 'enroll_now' course.id %}" class="btn btn-primary">Take This Course</a>
+{% else %}
+    <a href="{% url 'guest_enroll_form' course.id %}" class="btn btn-secondary">Enquire Now</a>
+{% endif %}
               </li>
             </ul>
           </div>

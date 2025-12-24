@@ -88,13 +88,6 @@ class LeaveApplication(models.Model):
     def __str__(self):
         return f"{self.student.user.first_name} - {self.status}"
 
-# --- 4. Assessment & Placement ---
-class ExamResult(models.Model):
-    student = models.ForeignKey(Student, on_delete=models.CASCADE)
-    subject = models.CharField(max_length=100)
-    marks = models.IntegerField()
-    passed = models.BooleanField(default=False)
-    certificate_file = models.FileField(upload_to='certificates/', blank=True)
 
 class Placement(models.Model):
     student = models.OneToOneField(Student, on_delete=models.CASCADE)
@@ -120,3 +113,46 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.student.student_id} - {self.date} - {self.status}"
+
+class PendingAdmission(models.Model):
+    PAYMENT_CHOICES = [
+        ('FULL', 'Full Payment'),
+        ('EMI', 'EMI (PDC Required)'),
+        ('LOAN', 'Student Loan'),
+    ]
+
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=200)
+    email = models.EmailField()
+    phone = models.CharField(max_length=15)
+    
+    # --- NEW FIELDS ---
+    payment_mode = models.CharField(max_length=10, choices=PAYMENT_CHOICES, default='FULL')
+    payment_receipt = models.FileField(upload_to='guest_payments/')
+    
+    is_processed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.full_name} - {self.payment_mode}"
+    
+# StudentApp/models.py
+
+class StudentFeedback(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    rating = models.IntegerField(choices=[(1, 'Poor'), (2, 'Fair'), (3, 'Good'), (4, 'Very Good'), (5, 'Excellent')])
+    comments = models.TextField()
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+class ExamResult(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    exam_name = models.CharField(max_length=100)  # e.g., "Mid-Term Python"
+    marks_obtained = models.DecimalField(max_digits=5, decimal_places=2)
+    total_marks = models.DecimalField(max_digits=5, decimal_places=2)
+    is_passed = models.BooleanField(default=False)
+    
+    # Certificate file (only uploaded by Admin if passed)
+    certificate_file = models.FileField(upload_to='certificates/', null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.student.student_id} - {self.exam_name}"
+    

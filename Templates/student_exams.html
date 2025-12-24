@@ -1,0 +1,51 @@
+{% extends 'dashboard_student.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Exam Results & Certification</h2>
+
+    <table class="table table-striped mt-3">
+        <thead class="thead-dark">
+            <tr>
+                <th>Exam Name</th>
+                <th>Marks</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for exam in results %}
+            <tr>
+                <td>{{ exam.exam_name }}</td>
+                <td>{{ exam.marks_obtained }} / {{ exam.total_marks }}</td>
+                <td>
+                    {% if exam.is_passed %}
+                        <span class="badge badge-success">Passed</span>
+                    {% else %}
+                        <span class="badge badge-danger">Failed</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No exams taken yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <hr>
+
+    <div class="card p-4 bg-light">
+        <h4>Course Completion Certificate</h4>
+        <p><strong>Criteria:</strong> Fees Paid ✅ | Docs Verified ✅ | All Exams Passed ✅</p>
+        
+        {% if can_download_cert %}
+            <div class="alert alert-success">Congratulations! You are eligible.</div>
+            <a href="#" class="btn btn-success btn-lg"><i class="fas fa-download"></i> Download Certificate</a>
+        {% else %}
+            <div class="alert alert-warning">
+                You are not eligible yet. Please check your pending fees or exam grades.
+            </div>
+            <button class="btn btn-secondary" disabled>Download Locked 🔒</button>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

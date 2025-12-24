@@ -1,0 +1,20 @@
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <h4>Course: {{ student.course.name }}</h4>
+    
+    <div class="form-group">
+        <label>Select Payment Plan</label>
+        <select name="payment_mode" class="form-control">
+            <option value="FULL">Full Payment (${{ student.course.price }})</option>
+            <option value="EMI">EMI (PDC Required)</option>
+            <option value="LOAN">Student Loan</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Upload Aadhaar Card (PDF/Image)</label>
+        <input type="file" name="aadhaar" class="form-control">
+    </div>
+
+    <button type="submit" class="btn btn-success">Complete Onboarding</button>
+</form>
