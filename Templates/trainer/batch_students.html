@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ batch.name }} - Students | StudyLab</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body { background-color: #f8f9fa; }
+        .student-img { width: 45px; height: 45px; object-fit: cover; border-radius: 50%; }
+        .student-initials { width: 45px; height: 45px; border-radius: 50%; background-color: #e9ecef; color: #495057; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .table-hover tbody tr:hover { background-color: #ffffff; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">StudyLab <span class="text-primary">Trainer</span></a>
+            <div class="d-flex">
+                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'trainer_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ batch.name }}</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold mb-0">Class: {{ batch.name }}</h2>
+                <p class="text-muted">{{ batch.course.name }}</p>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <a href="{% url 'trainer_dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i> Back
+                </a>
+
+                <a href="{% url 'batch_leaves' batch.id %}" class="btn btn-warning">
+                    <i class="fas fa-envelope-open-text me-2"></i> Leave Requests
+                </a>
+
+                <a href="{% url 'admin_attendance' %}?batch_id={{ batch.id }}" class="btn btn-primary">
+                    <i class="fas fa-check-circle me-2"></i> Mark Attendance
+                </a>
+            </div>
+        </div>
+
+        <div class="card shadow border-0 rounded-3">
+            <div class="card-header bg-white py-3 border-bottom">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark">Enrolled Students <span class="badge bg-secondary rounded-pill ms-2">{{ students.count }}</span></h5>
+                    
+                    <div class="input-group" style="width: 250px;">
+                        <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" class="form-control bg-light border-start-0" placeholder="Search student...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-uppercase small text-muted">
+                            <tr>
+                                <th class="ps-4">Student</th>
+                                <th>Student ID</th>
+                                <th>Contact</th>
+                                <th>Enrollment Status</th>
+                                <th>Fee Status</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        {% if student.profile_image %}
+                                            <img src="{{ student.profile_image.url }}" alt="Profile" class="student-img me-3">
+                                        {% else %}
+                                            <div class="student-initials me-3">
+                                                {{ student.user.first_name|slice:":1" }}{{ student.user.last_name|slice:":1" }}
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ student.user.first_name }} {{ student.user.last_name }}</div>
+                                            <div class="small text-muted">{{ student.user.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                
+                                <td><span class="font-monospace text-secondary">{{ student.student_id }}</span></td>
+                                
+                                <td>
+                                    <a href="tel:{{ student.phone }}" class="text-decoration-none text-dark">
+                                        <i class="fas fa-phone-alt text-muted me-1"></i> {{ student.phone }}
+                                    </a>
+                                </td>
+
+                                <td>
+                                    {% if student.documents_verified %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Verified</span>
+                                    {% else %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Docs Pending</span>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {% if student.is_fee_paid %}
+                                        <span class="badge bg-success rounded-pill">Paid</span>
+                                    {% else %}
+                                        <span class="badge bg-danger rounded-pill">Unpaid</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end pe-4">
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-light border dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            Options
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end">
+                                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2 text-muted"></i> View Profile</a></li>
+                                            <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2 text-muted"></i> Academic Stats</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-5">
+                                    <div class="text-muted">
+                                        <i class="fas fa-user-slash fa-2x mb-3"></i>
+                                        <p>No students enrolled in this batch yet.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card-footer bg-white py-3">
+                <small class="text-muted">Showing all {{ students.count }} students</small>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

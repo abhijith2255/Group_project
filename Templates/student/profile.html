@@ -1,186 +1,162 @@
-{% extends 'student/base.html' %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f6f9; display: flex; height: 100vh; margin: 0; }
+        
+        /* Sidebar */
+        .sidebar { width: 250px; background-color: #2c3e50; color: white; display: flex; flex-direction: column; }
+        .sidebar h2 { text-align: center; padding: 20px 0; background-color: #1a252f; margin: 0; }
+        .sidebar a { padding: 15px 20px; color: #bdc3c7; text-decoration: none; border-bottom: 1px solid #34495e; }
+        .sidebar a:hover { background-color: #34495e; color: white; }
 
-{% block content %}
+        /* Profile Content */
+        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        
+        .profile-card {
+            background: white;
+            max-width: 700px; /* Made slightly wider for better reading */
+            margin: 0 auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        /* Header & Image Styling */
+        .profile-header {
+            background: #3498db;
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .profile-header h1 { margin: 10px 0 5px 0; }
+        .profile-header span { font-size: 0.9em; opacity: 0.8; }
 
-<div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container">
-        <!-- Menu -->
+        /* Circular Image Styling */
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+            background: white;
+        }
+        .profile-img-placeholder {
+            font-size: 60px;
+            background: white;
+            width: 120px;
+            height: 120px;
+            line-height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 10px auto;
+            color: #3498db;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Data Section Styling */
+        .profile-body { padding: 30px; }
+        .section-title { border-bottom: 2px solid #eee; padding-bottom: 10px; color: #2c3e50; margin-top: 30px; margin-bottom: 15px;}
+        .section-title:first-child { margin-top: 0; }
+        
+        .data-row {
+            display: flex;
+            border-bottom: 1px solid #f9f9f9;
+            padding: 12px 0;
+        }
+        .data-row:last-child { border-bottom: none; }
+        .label { width: 180px; font-weight: 600; color: #7f8c8d; }
+        .value { color: #2c3e50; font-weight: 500; }
+    </style>
+</head>
+<body>
 
-        <!-- / Menu -->
-
-        <!-- Layout container -->
-        <div class="layout-page">
-          <!-- Navbar -->
-
-
-          <!-- / Navbar -->
-
-          <!-- Content wrapper -->
-          <div class="content-wrapper">
-            <!-- Content -->
-            <div class="container-xxl flex-grow-1 container-p-y">
-              <div class="row">
-                <div class="col-md-12">
-                  <div class="nav-align-top">
-                    <ul class="nav nav-pills flex-column flex-md-row mb-6 gap-md-0 gap-2">
-                      <li class="nav-item">
-                        <a class="nav-link active" href="javascript:void(0);"
-                          ><i class="icon-base bx bx-user icon-sm me-1_5"></i> Account</a
-                        >
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="pages-account-settings-notifications.html"
-                          ><i class="icon-base bx bx-bell icon-sm me-1_5"></i> Notifications</a
-                        >
-                      </li>
-                      <li class="nav-item">
-                        <a class="nav-link" href="pages-account-settings-connections.html"
-                          ><i class="icon-base bx bx-link-alt icon-sm me-1_5"></i> Connections</a
-                        >
-                      </li>
-                    </ul>
-                  </div>
-                  <div class="card mb-6">
-                    <!-- Account -->
-                    <div class="card-body">
-                      <div class="d-flex align-items-start align-items-sm-center gap-6 pb-4 border-bottom">
-                        <img
-                          src="{% static 'account/assets/img/avatars/1.png' %}"
-                          alt="user-avatar"
-                          class="d-block w-px-100 h-px-100 rounded"
-                          id="uploadedAvatar" />
-                        <div class="button-wrapper">
-                          <label for="upload" class="btn btn-primary me-3 mb-4" tabindex="0">
-                            <span class="d-none d-sm-block">Upload new photo</span>
-                            <i class="icon-base bx bx-upload d-block d-sm-none"></i>
-                            <input
-                              type="file"
-                              id="upload"
-                              class="account-file-input"
-                              hidden
-                              accept="image/png, image/jpeg" />
-                          </label>
-                          <button type="button" class="btn btn-outline-secondary account-image-reset mb-4">
-                            <i class="icon-base bx bx-reset d-block d-sm-none"></i>
-                            <span class="d-none d-sm-block">Reset</span>
-                          </button>
-
-                          <div>Allowed JPG, GIF or PNG. Max size of 800K</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div class="card-body pt-4">
-<form id="formAccountSettings" method="POST" onsubmit="return false">
-  <div class="row g-4">
-    
-    <div class="col-md-6">
-      <label for="firstName" class="form-label">First Name</label>
-      <input class="form-control" type="text" id="firstName" name="firstName" value="John" />
+    <div class="sidebar">
+        <h2>Student ERP</h2>
+        <a href="{% url 'dashboard' %}">⬅ Back to Dashboard</a>
+        <a href="#" style="background-color: #34495e; color: white;">👤 My Profile</a>
+        <a href="{% url 'logout' %}">Logout</a>
     </div>
 
-    <div class="col-md-6">
-      <label for="lastName" class="form-label">Last Name</label>
-      <input class="form-control" type="text" id="lastName" name="lastName" value="Doe" />
-    </div>
+    <div class="main-content">
+        <div class="profile-card">
+            
+            <div class="profile-header">
+                {% if student.profile_image %}
+                    <img src="{{ student.profile_image.url }}" alt="Profile Photo" class="profile-img">
+                {% else %}
+                    <div class="profile-img-placeholder">👨‍🎓</div>
+                {% endif %}
 
-    <div class="col-md-6">
-      <label for="email" class="form-label">E-mail</label>
-      <input class="form-control" type="text" id="email" name="email"
-             placeholder="john.doe@example.com" value="john.doe@example.com" />
-    </div>
-
-
-    <div class="col-md-6">
-      <label class="form-label" for="phoneNumber">Phone Number</label>
-      <div class="input-group input-group-merge">
-        <span class="input-group-text">IN (+91)</span>
-        <input type="text" id="phoneNumber" name="phoneNumber" class="form-control" placeholder="202 555 0111" />
-      </div>
-    </div>
-
-    <div class="col-md-6">
-      <label for="address" class="form-label">Address</label>
-      <input type="text" class="form-control" id="address" name="address" placeholder="Address" />
-    </div>
-
-    <div class="col-md-6">
-      <label for="state" class="form-label">State</label>
-      <input class="form-control" type="text" id="state" name="state" placeholder="California" />
-    </div>
-
-    <div class="col-md-6">
-      <label for="zipCode" class="form-label">Zip Code</label>
-      <input type="text" class="form-control" id="zipCode" name="zipCode" placeholder="231465" maxlength="6" />
-    </div>
-
-    <div class="col-md-6">
-      <label class="form-label" for="country">Country</label>
-      <select id="country" class="select2 form-select">
-        <option value="">Select</option>
-        <option value="India">India</option>
-        <!-- your other countries -->
-      </select>
-    </div>
-
-  </div>
-
-  <div class="mt-4">
-    <button type="submit" class="btn btn-primary me-3">Save changes</button>
-    <button type="reset" class="btn btn-outline-secondary">Cancel</button>
-  </div>
-</form>
-
-                    </div>
- <!-- /Account -->
-<div class="card mt-4">
-  <h5 class="card-header">Delete Account</h5>
-  <div class="card-body">
-    <div class="mb-3">
-      <div class="alert alert-warning">
-        <h5 class="alert-heading mb-1">Are you sure you want to delete your account?</h5>
-        <p class="mb-0">Once you delete your account, there is no going back. Please be certain.</p>
-      </div>
-    </div>
-
-    <form id="formAccountDeactivation" onsubmit="return false">
-      <div class="form-check mb-3 ms-2">
-        <input
-          class="form-check-input"
-          type="checkbox"
-          name="accountActivation"
-          id="accountActivation"
-        />
-        <label class="form-check-label" for="accountActivation">
-          I confirm my account deactivation
-        </label>
-      </div>
-
-      <button type="submit" class="btn btn-danger deactivate-account">
-        Deactivate Account
-      </button>
-    </form>
-  </div>
-</div>
-
-                </div>
-              </div>
+                <h1>
+                  {% if user.first_name %}
+                      {{ user.first_name }} {{ user.last_name }}
+                {% else %}
+                      {{ user.username }} {% endif %}
+               </h1>
+                <span>Student ID: {{ student.student_id }}</span>
             </div>
-            <!-- / Content -->
 
-            <!-- Footer -->
+            <div class="profile-body">
+                
+                <h3 class="section-title">Personal Details</h3>
+                <div class="data-row">
+                    <span class="label">Full Name:</span>
+                    <span class="value">
+                  {% if user.first_name %}
+                      {{ user.first_name }} {{ user.last_name }}
+                {% else %}
+                      {{ user.username }} {% endif %}
+               </span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Date of Birth:</span>
+                    <span class="value">{{ student.date_of_birth|default:"Not Updated" }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Gender:</span>
+                    <span class="value">{{ student.get_gender_display }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Address:</span>
+                    <span class="value">{{ student.address|default:"Not Updated" }}</span>
+                </div>
 
-            <!-- / Footer -->
+                <h3 class="section-title">Contact Info</h3>
+                <div class="data-row">
+                    <span class="label">Email:</span>
+                    <span class="value">{{ user.email }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Phone:</span>
+                    <span class="value">{{ student.phone }}</span>
+                </div>
 
-            <div class="content-backdrop fade"></div>
-          </div>
-          <!-- Content wrapper -->
+                <h3 class="section-title">Academic Status</h3>
+                <div class="data-row">
+                    <span class="label">Course:</span>
+                    <span class="value">{{ student.course }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Batch:</span>
+                    <span class="value">{{ student.batch_no }}</span>
+                </div>
+                <div class="data-row">
+                    <span class="label">Placement Status:</span>
+                    {% if student.placement_willingness %}
+                        <span class="value" style="color: #2980b9; font-weight: bold;">✔ Open for Opportunities</span>
+                    {% else %}
+                        <span class="value" style="color: #7f8c8d;">Opted Out</span>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-        <!-- / Layout page -->
-      </div>
-
-      <!-- Overlay -->
-      <div class="layout-overlay layout-menu-toggle"></div>
     </div>
 
-{% endblock %}
+</body>
+</html>

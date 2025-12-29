@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leave Requests | {{ batch.name }}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        body { background-color: #f8f9fa; }
+        .student-avatar {
+            width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+            border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .student-initials {
+            width: 40px; height: 40px; border-radius: 50%;
+            background-color: #6c757d; color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">StudyLab <span class="text-primary">Trainer</span></a>
+            <div class="d-flex">
+                <a href="{% url 'logout' %}" class="btn btn-outline-light btn-sm">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-3">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1">
+                        <li class="breadcrumb-item"><a href="{% url 'trainer_dashboard' %}" class="text-decoration-none">Dashboard</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'batch_students' batch.id %}" class="text-decoration-none">{{ batch.name }}</a></li>
+                        <li class="breadcrumb-item active">Leave Requests</li>
+                    </ol>
+                </nav>
+                <h3 class="fw-bold mb-0">Manage Leaves</h3>
+            </div>
+            <a href="{% url 'batch_students' batch.id %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Back to Student List
+            </a>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-info-circle me-2"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card shadow-sm border-warning mb-5">
+            <div class="card-header bg-warning-subtle text-dark border-bottom border-warning-subtle py-3">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-clock me-2"></i>Pending Approvals</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0 table-hover">
+                        <thead class="table-light text-secondary small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Student</th>
+                                <th>Dates Requested</th>
+                                <th>Reason</th>
+                                <th class="text-end pe-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in leaves %}
+                                {% if leave.status == 'Pending' %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="d-flex align-items-center">
+                                            {% if leave.student.profile_image %}
+                                                <img src="{{ leave.student.profile_image.url }}" class="student-avatar me-3">
+                                            {% else %}
+                                                <div class="student-initials me-3">{{ leave.student.user.first_name|slice:":1" }}</div>
+                                            {% endif %}
+                                            <div>
+                                                <div class="fw-bold">{{ leave.student.user.first_name }} {{ leave.student.user.last_name }}</div>
+                                                <div class="small text-muted">{{ leave.student.student_id }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">{{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d, Y" }}</div>
+                                        <div class="small text-muted">{{ leave.applied_on|timesince }} ago</div>
+                                    </td>
+                                    <td style="max-width: 300px;">
+                                        <div class="text-secondary fst-italic">"{{ leave.reason }}"</div>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <div class="btn-group shadow-sm">
+                                            <a href="{% url 'update_leave_status' leave.id 'Approved' %}" 
+                                               class="btn btn-success btn-sm"
+                                               onclick="return confirm('Approve this leave?');">
+                                                <i class="fas fa-check me-1"></i> Approve
+                                            </a>
+                                            <a href="{% url 'update_leave_status' leave.id 'Rejected' %}" 
+                                               class="btn btn-outline-danger btn-sm"
+                                               onclick="return confirm('Reject this leave?');">
+                                                <i class="fas fa-times me-1"></i> Reject
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            {% empty %}
+                                <tr><td colspan="4" class="text-center py-4 text-muted">No pending requests found.</td></tr>
+                            {% endfor %}
+                            
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow border-0">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold text-secondary"><i class="fas fa-history me-2"></i>Request History</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light text-secondary small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Student</th>
+                                <th>Dates</th>
+                                <th>Status</th>
+                                <th class="text-end pe-4">Processed Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for leave in leaves %}
+                                {% if leave.status != 'Pending' %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <span class="fw-bold text-secondary">{{ leave.student.user.first_name }} {{ leave.student.user.last_name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted">{{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d" }}</span>
+                                    </td>
+                                    <td>
+                                        {% if leave.status == 'Approved' %}
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3">Approved</span>
+                                        {% else %}
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3">Rejected</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end pe-4 text-muted small">
+                                        {{ leave.applied_on|date:"M d, Y" }}
+                                    </td>
+                                </tr>
+                                {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

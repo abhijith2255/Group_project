@@ -1,10 +1,10 @@
 from django.contrib import admin
-from .models import Student, Batch, Document, FeePayment, LeaveApplication, ExamResult, Placement, Course
+from .models import Student, Batch, Document, FeePayment, LeaveApplication, ExamResult, Placement, Course, Enrollment,Trainer
 
 # --- 1. STUDENT ADMIN ---
 class StudentAdmin(admin.ModelAdmin):
     # Define the columns you want to see
-    list_display = ('student_id', 'get_student_name', 'course', 'batch_no', 'is_fee_paid', 'placement_willingness')
+    list_display = ('student_id', 'get_student_name', 'course', 'batch', 'is_fee_paid', 'placement_willingness')
     
     # Custom method to fetch the name safely
     def get_student_name(self, obj):
@@ -59,6 +59,17 @@ class LeaveApplicationAdmin(admin.ModelAdmin):
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('name', 'price')
+
+class EnrollmentAdmin(admin.ModelAdmin):
+    list_display = ('student', 'course', 'status', 'enrolled_at')
+    list_filter = ('status', 'course')
+    search_fields = ('student__name', 'course__title')
+admin.site.register(Enrollment, EnrollmentAdmin)
+
+class TrainerAdmin(admin.ModelAdmin):
+    list_display = ('full_name', 'designation', 'expertise')
+
+admin.site.register(Trainer, TrainerAdmin)
 
 # Simple registration for the rest
 admin.site.register(Batch)
