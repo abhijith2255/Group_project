@@ -1,0 +1,130 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Exam Card Styling */
+    .exam-card {
+        border-left: 5px solid #0d6efd;
+        transition: transform 0.2s;
+    }
+    .exam-card:hover {
+        transform: translateX(5px);
+    }
+    .exam-card.passed { border-color: #198754; }
+    .exam-card.failed { border-color: #dc3545; }
+
+    /* Certificate Section */
+    .cert-box {
+        background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+        border: 2px dashed #ccc;
+        border-radius: 15px;
+        text-align: center;
+        padding: 40px;
+        position: relative;
+    }
+    .cert-box.unlocked {
+        background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+        border: 2px solid #198754;
+    }
+    .lock-icon {
+        font-size: 3rem;
+        color: #6c757d;
+        margin-bottom: 15px;
+    }
+    .check-list {
+        text-align: left;
+        display: inline-block;
+        margin-top: 15px;
+        font-size: 0.9rem;
+    }
+    .check-list i { margin-right: 8px; }
+    .text-success i { color: green; }
+    .text-danger i { color: red; }
+</style>
+
+<div class="container mt-4 mb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark"><i class="fas fa-award text-warning"></i> Exam Portal</h3>
+            <p class="text-muted">View your grades and download your Course Certificate.</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div class="row">
+        
+        <div class="col-lg-7 mb-4">
+            <h5 class="fw-bold mb-3">Academic Performance</h5>
+            
+            {% for result in results %}
+            <div class="card shadow-sm mb-3 exam-card {% if result.is_passed %}passed{% else %}failed{% endif %}">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="fw-bold mb-1">{{ result.exam_name }}</h5>
+                        <small class="text-muted"><i class="far fa-calendar"></i> {{ result.date_conducted }}</small>
+                    </div>
+                    <div class="text-end">
+                        <h4 class="mb-0 fw-bold">{{ result.marks_obtained }} <span class="text-muted fs-6">/ {{ result.total_marks }}</span></h4>
+                        {% if result.is_passed %}
+                            <span class="badge bg-success">PASSED</span>
+                        {% else %}
+                            <span class="badge bg-danger">FAILED</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No exam results available yet.
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="col-lg-5">
+            <h5 class="fw-bold mb-3">Course Completion Certificate</h5>
+            
+            <div class="cert-box {% if can_download_cert %}unlocked{% endif %}">
+                {% if can_download_cert %}
+                    <i class="fas fa-medal lock-icon text-success"></i>
+                    <h4 class="fw-bold text-success">Congratulations!</h4>
+                    <p>You have successfully completed the course requirements.</p>
+                    <a href="{% url 'download_certificate' %}" class="btn btn-dark btn-lg mt-2 shadow">
+                        <i class="fas fa-download"></i> Download Certificate
+                    </a>
+                {% else %}
+                    <i class="fas fa-lock lock-icon"></i>
+                    <h5 class="fw-bold text-muted">Certificate Locked</h5>
+                    <p class="small text-muted mb-0">Complete the following to unlock:</p>
+                    
+                    <div class="check-list">
+                        <div class="{% if results %}text-success{% else %}text-danger{% endif %}">
+                            <i class="fas {% if results %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i> Complete Exams
+                        </div>
+                        <div class="{% if not results.filter.is_passed_False %}text-success{% else %}text-danger{% endif %}">
+                            <i class="fas {% if not results.filter.is_passed_False %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i> Pass All Exams
+                        </div>
+                        <div class="{% if student.is_fee_paid %}text-success{% else %}text-danger{% endif %}">
+                            <i class="fas {% if student.is_fee_paid %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i> Clear Fees
+                        </div>
+                        <div class="{% if student.documents_verified %}text-success{% else %}text-danger{% endif %}">
+                            <i class="fas {% if student.documents_verified %}fa-check-circle{% else %}fa-times-circle{% endif %}"></i> Verify Documents
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="mt-4 p-3 bg-light rounded border">
+                <h6><i class="fas fa-info-circle text-primary"></i> Note:</h6>
+                <p class="small text-muted mb-0">
+                    Please ensure your name in the Profile section is correct before downloading. This name will be printed on the certificate.
+                </p>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

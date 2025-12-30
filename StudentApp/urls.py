@@ -23,19 +23,14 @@ urlpatterns = [
     path('attendance/manage/', views.admin_mark_attendance, name='admin_attendance'),
     path('attendance/my-stats/', views.student_my_attendance, name='my_attendance'),
     path('courses/', views.course_list, name='course_list'),
-
-    # --- ENROLLMENT & ONBOARDING ---
-    path('enroll/<int:course_id>/', views.enroll_now, name='enroll_now'),
-    path('onboarding/', views.complete_onboarding, name='complete_onboarding'),
-    
-    # --- ADMIN PANELS ---
-    path('admin-panel/pending-requests/', views.pending_admissions_list, name='pending_admissions_list'),
-    path('admin-panel/approve-guest/<int:pending_id>/', views.approve_guest, name='approve_guest'),
-    
-    # --- GUEST & STUDENT FEATURES ---
-    path('guest-enroll/<int:course_id>/', views.guest_enroll_form, name='guest_enroll_form'),
+    path('pay-fee/', views.pay_fee, name='pay_fee'),
+    path('id-card/', views.view_id_card, name='view_id_card'),
     path('classroom/', views.my_classroom, name='my_classroom'),
     path('feedback/', views.submit_feedback, name='submit_feedback'),
     path('exams/', views.exam_portal, name='exam_portal'),
-    path('placement-toggle/', views.toggle_placement, name='toggle_placement'),
+    path('exams/download/', views.download_certificate, name='download_certificate'),
+    path('library/', views.my_library, name='my_library'),
+    path('placements/', views.placement_portal, name='placement_portal'),
+    path('schedule/', views.my_schedule, name='my_schedule'),
+    path('lesson-plan/', views.lesson_plan, name='lesson_plan'),
 ]

@@ -1,117 +1,220 @@
-{% extends 'base.html' %}
+{% extends 'student/base.html' %}
 {% load static %}
 
 {% block content %}
 
 <style>
-    /* Custom Card Style */
-    .custom-card {
-        max-width: 700px;
-        margin: 0 auto; /* Centers the card */
+    /* Soft Background for the page */
+    body { background-color: #f0f2f5; }
+
+    /* Custom Card Styling */
+    .dashboard-card {
         border: none;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        border-radius: 10px;
-        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        background: #fff;
+        overflow: hidden;
+        height: 100%; /* Equal height for side-by-side */
     }
-    /* Blue Header */
-    .card-header-blue {
-        background-color: #0d6efd; /* Bootstrap Primary Blue */
-        color: white;
-        border-radius: 10px 10px 0 0 !important;
-        padding: 20px;
+
+    .card-header-custom {
+        background-color: #fff;
+        border-bottom: 1px solid #edf2f9;
+        padding: 20px 25px;
     }
-    .btn-submit {
-        width: 100%;
-        padding: 10px;
-        font-size: 1.1rem;
+
+    .card-header-custom h5 {
+        margin: 0;
+        font-weight: 700;
+        color: #1e293b;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
-    /* Status Badges */
-    .badge-pending { background-color: #ffc107; color: #000; padding: 5px 10px; border-radius: 12px; font-size: 0.85rem;}
-    .badge-approved { background-color: #198754; color: #fff; padding: 5px 10px; border-radius: 12px; font-size: 0.85rem;}
-    .badge-rejected { background-color: #dc3545; color: #fff; padding: 5px 10px; border-radius: 12px; font-size: 0.85rem;}
+
+    /* Form Label Styling */
+    .form-label {
+        font-weight: 600;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    /* Badge Styling */
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .badge-pending { background-color: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+    .badge-approved { background-color: #f0fdf4; color: #15803d; border: 1px solid #dcfce7; }
+    .badge-rejected { background-color: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
+
+    /* Table Styling */
+    .table thead th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .table td {
+        vertical-align: middle;
+        font-size: 0.95rem;
+        color: #334155;
+    }
 </style>
- 
- <div class="card custom-card mb-5">
-        <div class="card-header card-header-blue text-center">
-            <h3>📝 Student Leave Application</h3>
-            <p class="mb-0">Fill in the details below to request leave.</p>
+
+<div class="container mt-4 mb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark">Leave Management</h3>
+            <p class="text-muted mb-0">Apply for leave and track your application status.</p>
         </div>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row">
         
-        <div class="card-body p-4">
+        <div class="col-lg-5 mb-4">
+            <div class="dashboard-card">
+                <div class="card-header-custom">
+                    <h5><i class="fas fa-edit text-primary"></i> New Application</h5>
+                </div>
+                <div class="card-body p-4">
+                    
+                    {% if form.errors %}
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <strong><i class="fas fa-exclamation-circle"></i> Error:</strong> Please check the details below.
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endif %}
+
+                    <form method="POST" id="leaveForm">
+                        {% csrf_token %}
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Start Date</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-calendar-alt text-muted"></i></span>
+                                    {{ form.start_date }} 
+                                </div>
+                                <div class="text-danger small mt-1">{{ form.start_date.errors }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">End Date</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-calendar-check text-muted"></i></span>
+                                    {{ form.end_date }} 
+                                </div>
+                                <div class="text-danger small mt-1">{{ form.end_date.errors }}</div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Reason for Leave</label>
+                            {{ form.reason }} 
+                            <div class="text-danger small mt-1">{{ form.reason.errors }}</div>
+                            <small class="text-muted">Mention the specific reason (e.g., Medical Emergency, Wedding).</small>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm">
+                                <i class="fas fa-paper-plane"></i> Submit Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="dashboard-card">
+                <div class="card-header-custom d-flex justify-content-between align-items-center">
+                    <h5><i class="fas fa-history text-info"></i> Application History</h5>
+                    <span class="badge bg-light text-dark border">{{ leaves.count }} Records</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Duration</th>
+                                    <th>Reason</th>
+                                    <th class="text-end pe-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for leave in leaves %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold">{{ leave.start_date|date:"d M" }} - {{ leave.end_date|date:"d M, Y" }}</div>
+                                        <small class="text-muted">Applied: {{ leave.applied_on|timesince }} ago</small>
+                                    </td>
+                                    <td>
+                                        <span class="d-inline-block text-truncate" style="max-width: 150px;">
+                                            {{ leave.reason }}
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        {% if leave.status == 'Approved' %}
+                                            <span class="status-badge badge-approved"><i class="fas fa-check"></i> Approved</span>
+                                        {% elif leave.status == 'Rejected' %}
+                                            <span class="status-badge badge-rejected"><i class="fas fa-times"></i> Rejected</span>
+                                        {% else %}
+                                            <span class="status-badge badge-pending"><i class="fas fa-clock"></i> Pending</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center py-5">
+                                        <div class="text-muted">
+                                            <i class="fas fa-folder-open fa-3x mb-3 text-light-gray"></i>
+                                            <p>No leave history found.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Select all input and textarea fields inside the form
+        var inputs = document.querySelectorAll('#leaveForm input, #leaveForm textarea, #leaveForm select');
+        
+        inputs.forEach(function(input) {
+            // Add Bootstrap class
+            input.classList.add('form-control');
             
-            {% if form.errors %}
-                <div class="alert alert-danger">
-                    <strong>Please correct the errors below:</strong>
-                </div>
-            {% endif %}
+            // Remove the default styling border from input-group if needed
+            input.style.borderLeft = "none"; 
 
-            <form method="POST">
-                {% csrf_token %}
+            // If it's a date field, force the type to 'date' if not already set
+            // Note: This relies on the field name containing 'date'
+            if (input.name.includes('date')) {
+                input.setAttribute('type', 'date');
+            }
+        });
+    });
+</script>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Start Date</label>
-                    {{ form.start_date }} 
-                    <div class="text-danger small">{{ form.start_date.errors }}</div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">End Date</label>
-                    {{ form.end_date }} 
-                    <div class="text-danger small">{{ form.end_date.errors }}</div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Reason for Leave</label>
-                    {{ form.reason }} 
-                    <div class="text-danger small">{{ form.reason.errors }}</div>
-                    <div class="form-text">Please provide a valid reason (e.g., Medical, Family Event).</div>
-                </div>
-
-                <div class="d-grid gap-2 mt-4">
-                    <button type="submit" class="btn btn-primary btn-submit">Submit Application</button>
-                    <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Cancel & Back to Dashboard</a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="card custom-card">
-        <div class="card-header bg-white border-bottom p-4">
-            <h5 class="mb-0 fw-bold">📂 My Leave History</h5>
-        </div>
-        <div class="card-body p-0"> 
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-4">Date Requested</th>
-                        <th>Reason</th>
-                        <th class="text-end pe-4">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for leave in leaves %}
-                    <tr>
-                        <td class="ps-4">{{ leave.start_date }} <span class="text-muted">to</span> {{ leave.end_date }}</td>
-                        <td>{{ leave.reason|truncatechars:30 }}</td> 
-                        <td class="text-end pe-4">
-                            {% if leave.status == 'Approved' %}
-                                <span class="badge badge-approved">Approved</span>
-                            {% elif leave.status == 'Rejected' %}
-                                <span class="badge badge-rejected">Rejected</span>
-                            {% else %}
-                                <span class="badge badge-pending">Pending</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" class="text-center py-4 text-muted">
-                            No leave applications found.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
 {% endblock %}

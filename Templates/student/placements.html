@@ -1,0 +1,47 @@
+{% extends 'student/base.html' %}
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark"><i class="fas fa-briefcase text-primary"></i> Placement Drives</h3>
+            <p class="text-muted">Upcoming opportunities matched for you.</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">Back</a>
+    </div>
+
+    <div class="row">
+        {% for drive in drives %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100 shadow-sm border-0" style="border-left: 5px solid #0d6efd !important;">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="fw-bold text-primary">{{ drive.company_name }}</h5>
+                        <span class="badge bg-light text-dark border">{{ drive.date_of_drive|date:"d M, h:i A" }}</span>
+                    </div>
+                    <h6 class="text-dark fw-bold mb-3">{{ drive.job_role }}</h6>
+                    
+                    <p class="text-muted small mb-2">{{ drive.description|truncatewords:20 }}</p>
+                    
+                    <div class="bg-light p-2 rounded mb-3 small">
+                        <strong><i class="fas fa-check-circle text-success"></i> Eligibility:</strong><br>
+                        {{ drive.eligibility_criteria }}
+                    </div>
+
+                    <p class="small text-muted"><i class="fas fa-map-marker-alt"></i> {{ drive.venue }}</p>
+
+                    <button class="btn btn-primary w-100 btn-sm">
+                        Apply / View Details
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-search-dollar fa-3x text-muted mb-3"></i>
+            <h4>No active drives at the moment.</h4>
+            <p class="text-muted">Keep preparing! New opportunities are added weekly.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

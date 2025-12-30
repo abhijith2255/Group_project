@@ -1,0 +1,147 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    /* --- STAR RATING CSS --- */
+    .rating-box {
+        display: inline-block;
+    }
+    .rating-box .stars {
+        display: flex;
+        flex-direction: row-reverse; /* Important for the hover effect */
+        gap: 10px;
+    }
+    .rating-box .stars input {
+        display: none; /* Hide actual radio buttons */
+    }
+    .rating-box .stars label {
+        font-size: 40px;
+        color: #ddd;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    /* Hover Effects */
+    .rating-box .stars label:hover,
+    .rating-box .stars label:hover ~ label,
+    .rating-box .stars input:checked ~ label {
+        color: #ffc107; /* Gold Color */
+    }
+
+    /* Card Styling */
+    .feedback-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+    .history-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        border: 1px solid #eee;
+    }
+</style>
+
+<div class="container mt-4 mb-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark">Feedback & Suggestions</h3>
+            <p class="text-muted">Help us improve your learning experience.</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <div class="row">
+        
+        <div class="col-lg-7 mb-4">
+            <div class="card feedback-card h-100">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4 text-primary"><i class="fas fa-pen-fancy"></i> Write Feedback</h5>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="mb-4 text-center">
+                            <label class="form-label fw-bold d-block mb-2">How would you rate your experience?</label>
+                            <div class="rating-box">
+                                <div class="stars">
+                                    <input type="radio" name="rating" value="5" id="star5"><label for="star5" title="Excellent"><i class="fas fa-star"></i></label>
+                                    <input type="radio" name="rating" value="4" id="star4"><label for="star4" title="Good"><i class="fas fa-star"></i></label>
+                                    <input type="radio" name="rating" value="3" id="star3"><label for="star3" title="Average"><i class="fas fa-star"></i></label>
+                                    <input type="radio" name="rating" value="2" id="star2"><label for="star2" title="Poor"><i class="fas fa-star"></i></label>
+                                    <input type="radio" name="rating" value="1" id="star1"><label for="star1" title="Very Bad"><i class="fas fa-star"></i></label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">What is this regarding?</label>
+                            <select name="feedback_type" class="form-control" required>
+                                <option value="Course">Course Content</option>
+                                <option value="Trainer">Trainer / Teaching Quality</option>
+                                <option value="Facility">Lab / Infrastructure</option>
+                                <option value="Other">Other Suggestion</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Your Comments</label>
+                            <textarea name="comments" class="form-control" rows="5" placeholder="Tell us more about your experience..." required></textarea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm">
+                                Submit Feedback <i class="fas fa-paper-plane ms-2"></i>
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card history-card h-100">
+                <div class="card-header bg-transparent border-bottom p-3">
+                    <h5 class="fw-bold mb-0 text-dark"><i class="fas fa-history text-muted"></i> Your History</h5>
+                </div>
+                <div class="card-body p-0 overflow-auto" style="max-height: 500px;">
+                    
+                    {% if my_feedback %}
+                        <ul class="list-group list-group-flush">
+                            {% for item in my_feedback %}
+                            <li class="list-group-item p-3 bg-transparent">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="badge bg-light text-dark border">{{ item.get_feedback_type_display }}</span>
+                                    <small class="text-muted">{{ item.date_submitted|date:"d M, Y" }}</small>
+                                </div>
+                                <div class="mb-1 text-warning small">
+                                    {% for i in "12345"|make_list %}
+                                        {% if forloop.counter <= item.rating %}
+                                            <i class="fas fa-star"></i>
+                                        {% else %}
+                                            <i class="far fa-star text-secondary"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <p class="mb-0 text-muted small fst-italic">"{{ item.comments }}"</p>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <div class="text-center p-5 text-muted">
+                            <i class="far fa-comment-dots fa-3x mb-3"></i>
+                            <p>No feedback submitted yet.</p>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

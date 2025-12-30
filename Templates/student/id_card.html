@@ -1,0 +1,272 @@
+{% extends 'student/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap');
+
+    body {
+        background-color: #f4f6f9;
+    }
+
+    /* --- ID CARD CONTAINER --- */
+    .id-card-wrapper {
+        perspective: 1000px;
+        margin-top: 50px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .id-card {
+        width: 350px;
+        height: 540px;
+        background: #ffffff;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15), 0 5px 15px rgba(0,0,0,0.05);
+        overflow: hidden;
+        position: relative;
+        font-family: 'Montserrat', sans-serif;
+        text-align: center;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    /* --- BACKGROUND WATERMARK (Optional) --- */
+    .id-card::before {
+        content: 'STUDYLAB';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 60px;
+        font-weight: 800;
+        color: rgba(0,0,0,0.03); /* Very subtle watermark */
+        pointer-events: none;
+        white-space: nowrap;
+    }
+
+    /* --- HEADER DESIGN --- */
+    .card-header-curve {
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        height: 140px;
+        border-bottom-left-radius: 50% 20px;
+        border-bottom-right-radius: 50% 20px;
+        position: relative;
+        padding-top: 25px;
+        color: white;
+    }
+
+    .logo-text {
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+    }
+
+    .tagline {
+        font-size: 10px;
+        opacity: 0.8;
+        font-weight: 400;
+        letter-spacing: 1px;
+        margin-top: 2px;
+    }
+
+    /* --- PHOTO SECTION --- */
+    .photo-container {
+        position: relative;
+        margin-top: -65px; /* Pulls image up */
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .photo-border {
+        width: 130px;
+        height: 130px;
+        padding: 5px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+
+    .student-img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid #ddd;
+    }
+
+    /* --- TEXT DETAILS --- */
+    .name-text {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 5px 0 2px;
+        text-transform: capitalize;
+    }
+
+    .role-badge {
+        display: inline-block;
+        background: #e8f0fe;
+        color: #1e3c72;
+        padding: 4px 15px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    /* --- INFO TABLE --- */
+    .info-grid {
+        padding: 0 30px;
+        text-align: left;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        border-bottom: 1px dashed #eee;
+        padding-bottom: 8px;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .label-col {
+        color: #7f8c8d;
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .value-col {
+        color: #34495e;
+        font-size: 13px;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    /* --- FOOTER & BARCODE --- */
+    .card-footer-bar {
+        position: absolute;
+        bottom: 0;
+        width: 100%;
+        height: 50px;
+        background: #2c3e50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 10px;
+        letter-spacing: 1px;
+    }
+    
+    .barcode-fake {
+        height: 25px;
+        width: 150px;
+        background: repeating-linear-gradient(
+            to right,
+            #fff,
+            #fff 2px,
+            transparent 2px,
+            transparent 4px
+        );
+        opacity: 0.7;
+        margin: 0 auto 5px;
+    }
+
+    /* --- PRINT MODE --- */
+    @media print {
+        body * { visibility: hidden; }
+        .id-card, .id-card * { visibility: visible; }
+        .id-card {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid #ddd;
+            box-shadow: none;
+            -webkit-print-color-adjust: exact;
+        }
+        .no-print { display: none; }
+    }
+</style>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-12 text-center">
+            
+            <div class="id-card-wrapper">
+                <div class="id-card">
+                    
+                    <div class="card-header-curve">
+                        <div class="logo-text"><i class="fas fa-graduation-cap"></i> STUDYLAB</div>
+                        <div class="tagline">INSTITUTE OF TECHNOLOGY</div>
+                    </div>
+
+                    <div class="photo-container">
+                        <div class="photo-border">
+                            {% if photo_url %}
+                                <img src="{{ photo_url }}" class="student-img" alt="Student">
+                            {% else %}
+                                <img src="https://via.placeholder.com/150" class="student-img" alt="No Photo">
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="name-text">
+                        {% if student.user.first_name %}
+                            {{ student.user.first_name }} {{ student.user.last_name }}
+                        {% else %}
+                            {{ student.user.username }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="role-badge">{{ student.course.name }}</div>
+
+                    <div class="info-grid">
+                        <div class="info-row">
+                            <span class="label-col"><i class="fas fa-id-badge"></i> ID NO</span>
+                            <span class="value-col">{{ student.student_id }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label-col"><i class="fas fa-phone-alt"></i> PHONE</span>
+                            <span class="value-col">{{ student.phone }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label-col"><i class="fas fa-calendar-check"></i> JOINED</span>
+                            <span class="value-col">{{ student.user.date_joined|date:"M Y" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label-col"><i class="fas fa-hourglass-half"></i> VALID</span>
+                            <span class="value-col text-success">Active / 2026</span>
+                        </div>
+                    </div>
+
+                    <div class="card-footer-bar">
+                        <div>
+                            <div class="barcode-fake"></div>
+                            <span>AUTHORIZED STUDENT CARD</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="mt-5 no-print">
+                <button onclick="window.print()" class="btn btn-primary btn-lg rounded-pill px-4 shadow">
+                    <i class="fas fa-print"></i> Print / Save PDF
+                </button>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary btn-lg rounded-pill px-4 ml-2">
+                    Back to Dashboard
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
