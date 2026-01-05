@@ -320,21 +320,32 @@ def batch_list(request):
 @login_required
 @user_passes_test(is_bdm)
 def assign_student_batch(request):
-    """Logic to update a student's batch"""
+    """Assign a student to a specific batch"""
     if request.method == 'POST':
         student_id = request.POST.get('student_id')
         batch_id = request.POST.get('batch_id')
-        
-        student = get_object_or_404(Student, id=student_id)
-        batch = get_object_or_404(Batch, id=batch_id)
-        
-        if student.course != batch.course:
-            messages.error(request, f"Error: Student is in {student.course.name} but Batch is for {batch.course.name}")
-        else:
+
+        try:
+            student = Student.objects.get(id=student_id)
+            batch = Batch.objects.get(id=batch_id)
+
+            # 1. Validation: Check if Course Matches
+            # We shouldn't put a 'Python' student in a 'Java' batch
+            if student.course != batch.course:
+                messages.error(request, f"Error: Student is enrolled in {student.course.name}, but Batch is {batch.course.name}.")
+                return redirect('batch_list')
+
+            # 2. Assign Batch
             student.batch = batch
             student.save()
-            messages.success(request, f"Assigned {student.user.first_name} to {batch.name}")
-            
+
+            messages.success(request, f"Successfully assigned {student.user.first_name} to {batch.name}")
+            return redirect('batch_list')
+
+        except Exception as e:
+            messages.error(request, f"Assignment Failed: {str(e)}")
+            return redirect('batch_list')
+
     return redirect('batch_list')
 
 
@@ -437,3 +448,104 @@ def add_course(request):
             return redirect('add_course')
 
     return render(request, 'bdm/add_course.html')
+
+@login_required
+@user_passes_test(is_bdm)
+def add_batch(request):
+    """Create a new batch (Debug Version)"""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        course_id = request.POST.get('course_id')
+        trainer_id = request.POST.get('trainer_id')
+        start_date = request.POST.get('start_date')
+        time_slot = request.POST.get('time_slot')
+
+        # --- NO ERROR HANDLING: SHOW ME THE ERROR ---
+        
+        # 1. Get Course (This must exist)
+        course = Course.objects.get(id=course_id)
+
+        # 2. Get Trainer (Handle Empty Selection)
+        trainer = None
+        if trainer_id and trainer_id.strip() != "":
+            trainer = Trainer.objects.get(id=trainer_id)
+
+        # 3. Create the Batch
+        Batch.objects.create(
+            name=name,
+            course=course,
+            trainer=trainer,
+            start_date=start_date,
+            time_slot=time_slot
+        )
+        
+        messages.success(request, f"Batch '{name}' created successfully!")
+        return redirect('batch_list')
+
+    # GET Request
+    courses = Course.objects.all()
+    trainers = Trainer.objects.all()
+
+    return render(request, 'bdm/add_batch.html', {
+        'courses': courses,
+        'trainers': trainers
+    })
+# BdmApp/views.py
+
+@login_required
+@user_passes_test(is_bdm)
+def batch_detail(request, batch_id):
+    """Show details + Handle Edit + Handle Add Student"""
+    batch = get_object_or_404(Batch, id=batch_id)
+    students = batch.students.all()
+    
+    # Get students who are in this course but NOT in any batch
+    available_students = Student.objects.filter(course=batch.course, batch__isnull=True)
+    
+    # Get all trainers for the Edit Modal dropdown
+    all_trainers = Trainer.objects.all()
+    
+    return render(request, 'bdm/batch_detail.html', {
+        'batch': batch, 
+        'students': students,
+        'available_students': available_students,
+        'all_trainers': all_trainers # Needed for Edit Modal
+    })
+
+@login_required
+@user_passes_test(is_bdm)
+def edit_batch(request, batch_id):
+    """Process the Edit Modal form"""
+    if request.method == 'POST':
+        batch = get_object_or_404(Batch, id=batch_id)
+        
+        batch.name = request.POST.get('name')
+        batch.start_date = request.POST.get('start_date')
+        batch.time_slot = request.POST.get('time_slot')
+        
+        trainer_id = request.POST.get('trainer_id')
+        if trainer_id:
+            batch.trainer = Trainer.objects.get(id=trainer_id)
+        else:
+            batch.trainer = None
+            
+        batch.save()
+        messages.success(request, "Batch details updated!")
+        
+    # Redirect back to the detail page
+    return redirect('batch_detail', batch_id=batch_id)
+
+@login_required
+@user_passes_test(is_bdm)
+def add_student_to_specific_batch(request, batch_id):
+    """Process the Add Student Modal form"""
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        batch = get_object_or_404(Batch, id=batch_id)
+        student = get_object_or_404(Student, id=student_id)
+        
+        student.batch = batch
+        student.save()
+        messages.success(request, f"Added {student.user.first_name} to batch.")
+        
+    return redirect('batch_detail', batch_id=batch_id)

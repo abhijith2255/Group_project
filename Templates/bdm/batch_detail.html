@@ -1,0 +1,208 @@
+{% extends 'bdm/base.html' %}
+
+{% block title %}{{ batch.name }} | EduPro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="{% url 'batch_list' %}" class="text-decoration-none">Batches</a></li>
+            <li class="breadcrumb-item active">{{ batch.name }}</li>
+        </ol>
+    </nav>
+    <button class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm fw-bold" 
+            data-bs-toggle="modal" data-bs-target="#editBatchModal">
+        <i class="fas fa-edit me-1"></i> Edit Batch
+    </button>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white py-3 border-bottom">
+                <h6 class="fw-bold mb-0 text-primary">Batch Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="bg-light rounded-circle d-inline-flex p-3 mb-2 text-primary">
+                        <i class="fas fa-layer-group fa-2x"></i>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-1">{{ batch.name }}</h4>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 rounded-pill">
+                        {{ batch.course.name }}
+                    </span>
+                </div>
+                
+                <ul class="list-group list-group-flush small">
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                        <span class="text-muted">Trainer</span>
+                        <span class="fw-bold text-dark">
+                            {% if batch.trainer %}
+                                <img src="https://ui-avatars.com/api/?name={{ batch.trainer.full_name }}&background=random" class="rounded-circle me-1" width="20">
+                                {{ batch.trainer.full_name }}
+                            {% else %}
+                                <span class="text-muted">-- Unassigned --</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                        <span class="text-muted">Time Slot</span>
+                        <span class="fw-bold text-dark">{{ batch.time_slot|default:"Not Set" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0 border-bottom">
+                        <span class="text-muted">Start Date</span>
+                        <span class="fw-bold text-dark">{{ batch.start_date|date:"M d, Y" }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center py-3 border-0">
+                        <span class="text-muted">Total Students</span>
+                        <span class="badge bg-dark rounded-pill">{{ students.count }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-dark">Student List</h6>
+                
+                {% if available_students %}
+                <button class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" 
+                        data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                    <i class="fas fa-user-plus me-1"></i> Add Student
+                </button>
+                {% endif %}
+            </div>
+            
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light small text-muted text-uppercase">
+                        <tr>
+                            <th class="ps-4">Name</th>
+                            <th>Contact</th>
+                            <th>Fee Status</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-dark">
+                                <div class="d-flex align-items-center">
+                                    <span class="bg-light text-secondary rounded-circle p-2 me-2 small">
+                                        {{ student.user.first_name|slice:":1" }}
+                                    </span>
+                                    {{ student.user.first_name }} {{ student.user.last_name }}
+                                </div>
+                            </td>
+                            <td class="small text-muted">{{ student.phone }}</td>
+                            <td>
+                                {% if student.is_fee_paid %}
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-2">Paid</span>
+                                {% else %}
+                                    <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">{{ student.address }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="fas fa-users-slash mb-2 fs-4"></i><br>
+                                No students enrolled yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editBatchModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold">Edit Batch Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'edit_batch' batch.id %}">
+                {% csrf_token %}
+                <div class="modal-body px-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Batch Name</label>
+                        <input type="text" name="name" class="form-control" value="{{ batch.name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Assigned Trainer</label>
+                        <select name="trainer_id" class="form-select">
+                            <option value="">-- No Trainer --</option>
+                            {% for trainer in all_trainers %}
+                            <option value="{{ trainer.id }}" {% if batch.trainer.id == trainer.id %}selected{% endif %}>
+                                {{ trainer.full_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Start Date</label>
+                            <input type="date" name="start_date" class="form-control" value="{{ batch.start_date|date:'Y-m-d' }}" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Time Slot</label>
+                            <input type="text" name="time_slot" class="form-control" value="{{ batch.time_slot }}">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold">Add Student to Batch</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'add_student_to_specific_batch' batch.id %}">
+                {% csrf_token %}
+                <div class="modal-body px-4">
+                    <div class="alert alert-info small border-0 bg-soft-primary text-primary mb-3">
+                        <i class="fas fa-info-circle me-1"></i> Only showing students enrolled in <strong>{{ batch.course.name }}</strong> who are unassigned.
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Select Student</label>
+                        <select name="student_id" class="form-select" required>
+                            <option value="">-- Choose Student --</option>
+                            {% for stu in available_students %}
+                            <option value="{{ stu.id }}">{{ stu.user.first_name }} {{ stu.user.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Add Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

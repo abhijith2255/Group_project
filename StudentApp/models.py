@@ -29,15 +29,17 @@ class Course(models.Model):
         return self.name
 
 class Batch(models.Model):
-    name = models.CharField(max_length=50) # e.g., "Py-2025-Jan"
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='batches')
-    trainer = models.ForeignKey(Trainer, on_delete=models.SET_NULL, null=True, related_name='batches')
-    start_date = models.DateField(null=True, blank=True)
+    name = models.CharField(max_length=100)
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    trainer = models.ForeignKey(Trainer, on_delete=models.SET_NULL, null=True, blank=True)
+    start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-    timetable_link = models.URLField(help_text="Link to LMS or Calendar", blank=True)
+    
+    # ADD THIS LINE HERE:
+    time_slot = models.CharField(max_length=50, null=True, blank=True) 
 
     def __str__(self):
-        return f"{self.name} - {self.course.name}"
+        return self.name
 
 # ==========================================
 # 2. STUDENT CORE
