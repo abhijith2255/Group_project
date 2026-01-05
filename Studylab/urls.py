@@ -5,8 +5,12 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Student App (Root URL for Login)
     path('', include('StudentApp.urls')),
-  
+    
+    # BDM / CRM App (New)
+    path('bdm/', include('BdmApp.urls')),
 ]
 
 if settings.DEBUG:

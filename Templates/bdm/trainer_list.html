@@ -1,0 +1,48 @@
+{% extends 'bdm/base.html' %}
+
+{% block title %}Trainers | EduPro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold mb-0">Trainer Team</h4>
+    <a href="{% url 'add_trainer' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+        <i class="fas fa-plus me-2"></i> Add Trainer
+    </a>
+</div>
+
+<div class="row g-4">
+    {% for trainer in trainers %}
+    <div class="col-md-6 col-xl-4">
+        <div class="card border-0 shadow-sm h-100 rounded-3 overflow-hidden">
+            <div class="card-body text-center p-4">
+                <div class="mb-3">
+                    {% if trainer.profile_image %}
+                        <img src="{{ trainer.profile_image.url }}" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center mx-auto text-primary fw-bold fs-3" style="width: 100px; height: 100px;">
+                            {{ trainer.full_name|slice:":1" }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h5 class="fw-bold mb-1">{{ trainer.full_name }}</h5>
+                <p class="text-muted small mb-3">{{ trainer.designation }}</p>
+                
+                <div class="mb-3">
+                    {% for skill in trainer.expertise.split|slice:":3" %}
+                        <span class="badge bg-light text-primary border mb-1">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="d-grid">
+                    <a href="#" class="btn btn-outline-primary btn-sm rounded-pill">View Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">No trainers added yet.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

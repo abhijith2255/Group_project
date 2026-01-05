@@ -1,0 +1,46 @@
+{% extends 'bdm/base.html' %}
+
+{% block title %}Trainer Added | EduPro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-lg rounded-4 text-center overflow-hidden">
+            <div class="card-header bg-primary text-white py-4">
+                <div class="mb-2"><i class="fas fa-chalkboard-teacher fa-4x"></i></div>
+                <h4 class="fw-bold m-0">Trainer Added Successfully!</h4>
+            </div>
+            
+            <div class="card-body p-5">
+                <h5 class="fw-bold mb-1">{{ trainer_name }}</h5>
+                <p class="text-muted mb-4 badge bg-light text-dark border">{{ designation }}</p>
+
+                <div class="alert alert-light border border-2 border-dashed p-4 rounded-3 text-start bg-light">
+                    <h6 class="text-uppercase text-muted small fw-bold mb-3">Login Credentials</h6>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-secondary"><i class="fas fa-user me-2"></i> Username:</span>
+                        <span class="fw-bold text-dark fs-5 user-select-all">{{ username }}</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary"><i class="fas fa-key me-2"></i> Password:</span>
+                        <span class="fw-bold text-danger fs-5 user-select-all">{{ password }}</span>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <a href="https://wa.me/?text=Hello+{{ trainer_name }},+Welcome+to+the+team!+Your+trainer+login+details+are:+Username:+{{ username }}+Password:+{{ password }}" 
+                       target="_blank" class="btn btn-success fw-bold">
+                        <i class="fab fa-whatsapp me-2"></i> Send to Trainer via WhatsApp
+                    </a>
+                    
+                    <a href="{% url 'trainer_list' %}" class="btn btn-outline-secondary fw-bold">
+                        Back to Trainer List
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

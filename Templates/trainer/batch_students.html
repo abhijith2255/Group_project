@@ -94,7 +94,11 @@
                                         {% endif %}
                                         
                                         <div>
+                                            {% if student.user.first_name %}
                                             <div class="fw-bold text-dark">{{ student.user.first_name }} {{ student.user.last_name }}</div>
+                                            {% else %}
+                                            <div class="fw-bold text-dark">{{ student.user }}</div>
+                                            {% endif %}
                                             <div class="small text-muted">{{ student.user.email }}</div>
                                         </div>
                                     </div>

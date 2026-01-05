@@ -52,7 +52,7 @@ def dashboard(request):
     if user.is_superuser:
         pending_count = PendingAdmission.objects.filter(is_processed=False).count()
         total_students = Student.objects.count()
-        return render(request, 'bdm/dashboard_admin.html', {
+        return render(request, 'bdm/dashboard.html', {
             'pending_count': pending_count,
             'total_students': total_students
         })
@@ -65,19 +65,32 @@ def dashboard(request):
     else:
         try:
             student = Student.objects.get(user=user)
-            # Calculate Attendance Percentage
+            
+            # 1. Calculate Attendance (Existing code)
             records = Attendance.objects.filter(student=student)
             total = records.count()
             present = records.filter(status='Present').count()
             pct = round((present/total)*100, 1) if total > 0 else 0
             
+            # 2. Calculate Fee Balance (NEW CODE)
+            # Sum up all payments made by this student
+            total_paid = FeePayment.objects.filter(student=student).aggregate(Sum('amount'))['amount__sum']
+            
+            # If no payments exist, the result is None, so set it to 0
+            if total_paid is None:
+                total_paid = 0
+                
+            balance = student.course.price - total_paid
+
             return render(request, 'student/dashboard_student.html', {
                 'student': student,
-                'percentage': pct
+                'percentage': pct,
+                'balance': balance  # <--- Crucial: Pass this to the template
             })
+
         except Student.DoesNotExist:
             messages.error(request, "Access Denied: Profile not found.")
-            return redirect('user_logout') # Better to logout if no profile found
+            return redirect('user_logout')
 
 @login_required(login_url='login')
 def student_profile(request):
@@ -248,28 +261,54 @@ def student_my_attendance(request):
 def pay_fee(request):
     try:
         student = request.user.student
-    except Student.DoesNotExist:
+    except AttributeError:
         return redirect('dashboard')
 
-    course_price = student.course.price 
+    # 1. Get Course Price
+    # Since you removed 'total_fee_committed', we use the Course price directly.
+    if student.course:
+        course_price = student.course.price
+    else:
+        messages.error(request, "You are not enrolled in any course.")
+        return redirect('dashboard')
+
+    # 2. Calculate Total Paid
+    # We sum up all amounts from the 'FeePayment' table
     total_paid = FeePayment.objects.filter(student=student).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
+    
     balance_remaining = course_price - total_paid
 
-    if balance_remaining <= 0:
-        messages.success(request, "You have already paid the full fees!")
-        return redirect('dashboard')
-
+    # 3. Handle Payment Submission
     if request.method == 'POST':
-        amount = Decimal(request.POST.get('amount'))
-        mode = request.POST.get('payment_mode')
-        # transaction_id = request.POST.get('transaction_id')
+        try:
+            amount = Decimal(request.POST.get('amount'))
+            mode = request.POST.get('payment_mode') # Maps to 'mode' in your model
+            
+            # Basic Validation
+            if amount <= 0:
+                 messages.error(request, "Amount must be greater than 0.")
+            elif amount > balance_remaining:
+                 messages.error(request, f"You cannot pay more than the remaining balance (₹{balance_remaining}).")
+            else:
+                # 4. Create the Record (Using your FeePayment model fields)
+                FeePayment.objects.create(
+                    student=student,
+                    amount=amount,
+                    mode=mode  # Your model calls this field 'mode'
+                )
 
-        if amount > balance_remaining:
-             messages.error(request, f"Error: You are trying to pay {amount}, but only {balance_remaining} is remaining.")
-        else:
-            FeePayment.objects.create(student=student, amount=amount, mode=mode)
-            messages.success(request, "Payment submitted! Waiting for verification.")
-            return redirect('dashboard')
+                # 5. Check if fully paid and update Student model
+                # We calculate the NEW total to see if they are done.
+                new_total_paid = total_paid + amount
+                if course_price - new_total_paid <= 0:
+                    student.is_fee_paid = True
+                    student.save()
+
+                messages.success(request, "Payment successful!")
+                return redirect('dashboard')
+
+        except ValueError:
+            messages.error(request, "Invalid amount entered.")
 
     return render(request, 'student/pay_fee.html', {
         'student': student,

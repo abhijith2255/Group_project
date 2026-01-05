@@ -1,0 +1,160 @@
+{% extends 'bdm/base.html' %}
+
+{% block title %}Lead Profile | EduPro{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Profile Card specific styles */
+    .card-custom {
+        background: white; border-radius: 16px;
+        box-shadow: var(--card-shadow); border: none;
+        overflow: hidden; margin-bottom: 25px;
+    }
+    .profile-header { background: var(--primary-gradient); padding: 30px 20px; text-align: center; color: white; }
+    .avatar-circle {
+        width: 80px; height: 80px; background: rgba(255,255,255,0.2);
+        border-radius: 50%; display: flex; align-items: center; justify-content: center;
+        font-size: 2rem; font-weight: 700; margin: 0 auto 15px;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+    .info-item { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 0.9rem; border-bottom: 1px solid #f8f9fa; padding-bottom: 10px; }
+    .info-label { color: #8898aa; font-weight: 500; }
+    .info-value { font-weight: 600; color: #32325d; }
+
+    /* Timeline specific styles */
+    .timeline-area { padding: 20px; }
+    .timeline-item { position: relative; padding-left: 30px; border-left: 2px solid #e9ecef; padding-bottom: 25px; }
+    .timeline-item:last-child { border-left: 2px solid transparent; }
+    .timeline-icon {
+        position: absolute; left: -16px; top: 0;
+        width: 32px; height: 32px; border-radius: 50%;
+        background: white; border: 2px solid #5e72e4;
+        display: flex; align-items: center; justify-content: center;
+        color: #5e72e4; font-size: 0.8rem; z-index: 2;
+    }
+    .timeline-content { background: #f8f9fe; border-radius: 12px; padding: 15px; }
+</style>
+{% endblock %}
+
+{% block page_title %}Lead Details{% endblock %}
+{% block page_subtitle %}Manage interactions and history{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'lead_list' %}" class="text-muted text-decoration-none small mb-1">
+                <i class="fas fa-arrow-left me-1"></i> Back to List
+            </a>
+            <h4 class="fw-bold mb-0">Lead Profile</h4>
+        </div>
+        
+        {% if lead.status != 'CONVERTED' %}
+        <a href="{% url 'convert_lead' lead.id %}" class="btn btn-success px-4 fw-bold shadow-sm" style="border-radius: 10px;">
+            <i class="fas fa-user-graduate me-2"></i> Convert to Student
+        </a>
+        {% else %}
+        <button class="btn btn-secondary px-4" disabled style="border-radius: 10px;">
+            <i class="fas fa-check-circle me-2"></i> Already Admitted
+        </button>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card-custom">
+                <div class="profile-header">
+                    <div class="avatar-circle">{{ lead.first_name|slice:":1" }}</div>
+                    <h5 class="fw-bold mb-1">{{ lead.first_name }} {{ lead.last_name }}</h5>
+                    <div class="mb-2 opacity-75 small">{{ lead.email }}</div>
+                    <span class="badge bg-white text-primary px-3 py-1 rounded-pill">{{ lead.get_status_display }}</span>
+                </div>
+                
+                <div class="p-4">
+                    <div class="info-item">
+                        <span class="info-label"><i class="fas fa-phone me-2"></i> Phone</span>
+                        <span class="info-value">{{ lead.phone }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="fas fa-book me-2"></i> Interest</span>
+                        <span class="info-value text-primary">{{ lead.course_interested.name }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label"><i class="fas fa-map-marker-alt me-2"></i> City</span>
+                        <span class="info-value">{{ lead.city|default:"--" }}</span>
+                    </div>
+                    <div class="info-item border-0">
+                        <span class="info-label"><i class="fas fa-globe me-2"></i> Source</span>
+                        <span class="info-value">{{ lead.source.name|default:"Direct" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            
+            <div class="card-custom p-4">
+                <h6 class="fw-bold mb-3 text-uppercase small text-muted">Log New Interaction</h6>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-4">
+                            <label class="small text-muted mb-1">Type</label>
+                            <select name="type" class="form-select form-select-sm bg-light border-0">
+                                <option value="CALL">Phone Call</option>
+                                <option value="WHATSAPP">WhatsApp</option>
+                                <option value="EMAIL">Email</option>
+                                <option value="MEETING">Visit</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="small text-muted mb-1">Next Follow Up</label>
+                            <input type="date" name="next_follow_up" class="form-control form-control-sm bg-light border-0">
+                        </div>
+                    </div>
+                    <textarea name="notes" class="form-control bg-light border-0" rows="2" placeholder="Write summary here..." required></textarea>
+                    <div class="text-end mt-3">
+                        <button type="submit" class="btn btn-primary btn-sm px-4 rounded-pill">Save Log</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card-custom">
+                <div class="p-3 border-bottom bg-light">
+                    <h6 class="fw-bold mb-0 text-dark">Activity History</h6>
+                </div>
+                <div class="timeline-area">
+                    {% for interaction in interactions %}
+                    <div class="timeline-item">
+                        <div class="timeline-icon">
+                            {% if interaction.interaction_type == 'CALL' %} <i class="fas fa-phone"></i>
+                            {% elif interaction.interaction_type == 'WHATSAPP' %} <i class="fab fa-whatsapp"></i>
+                            {% else %} <i class="fas fa-comment-alt"></i> {% endif %}
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="fw-bold text-dark small">{{ interaction.get_interaction_type_display }}</span>
+                            <span class="text-muted small" style="font-size: 0.75rem;">{{ interaction.interaction_date|timesince }} ago</span>
+                        </div>
+                        
+                        <div class="timeline-content">
+                            <p class="mb-0 small text-secondary">{{ interaction.notes }}</p>
+                            {% if interaction.next_follow_up %}
+                            <div class="mt-2 pt-2 border-top border-light">
+                                <span class="badge bg-warning text-dark fw-normal" style="font-size: 0.7rem;">
+                                    <i class="fas fa-clock me-1"></i> Next: {{ interaction.next_follow_up|date:"M d" }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="text-center py-4">
+                        <p class="text-muted small">No interactions recorded yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}

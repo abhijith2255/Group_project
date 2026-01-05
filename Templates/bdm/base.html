@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BDM Portal | EduPro{% endblock %}</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --sidebar-width: 260px;
+            --text-dark: #2d3748;
+            --text-muted: #a0aec0;
+            --card-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        body { font-family: 'Poppins', sans-serif; background-color: #f7f9fc; color: var(--text-dark); overflow-x: hidden; }
+
+        /* SIDEBAR */
+        .sidebar { width: var(--sidebar-width); height: 100vh; position: fixed; top: 0; left: 0; background: white; box-shadow: 2px 0 10px rgba(0,0,0,0.03); z-index: 1000; padding: 20px; overflow-y: auto; }
+        .brand-logo { font-size: 1.4rem; font-weight: 700; color: #5e72e4; display: flex; align-items: center; gap: 10px; margin-bottom: 30px; padding-left: 10px; }
+        .nav-category { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-muted); margin-top: 20px; margin-bottom: 8px; padding-left: 15px; font-weight: 700; }
+        .nav-link { display: flex; align-items: center; color: #67748e; padding: 10px 15px; border-radius: 10px; transition: all 0.3s ease; font-weight: 500; text-decoration: none; font-size: 0.9rem; margin-bottom: 4px; }
+        .nav-link:hover { background-color: #f6f9fc; color: #5e72e4; transform: translateX(3px); }
+        .nav-link.active { background: var(--primary-gradient); color: white; box-shadow: 0 4px 10px rgba(118, 75, 162, 0.3); }
+        .nav-link i { width: 22px; margin-right: 10px; font-size: 1rem; }
+
+        /* MAIN CONTENT WRAPPER */
+        .main-content { margin-left: var(--sidebar-width); padding: 25px; min-height: 100vh; }
+        
+        /* COMMON UI ELEMENTS */
+        .top-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .search-bar { background: white; border-radius: 50px; padding: 8px 20px; box-shadow: var(--card-shadow); border: none; width: 250px; font-size: 0.9rem; outline: none; }
+        
+        /* Allow child templates to add custom CSS */
+        {% block extra_css %}{% endblock %}
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="brand-logo">
+            <i class="fas fa-layer-group"></i> EduPro
+        </div>
+
+        <div class="nav-category">Sales & CRM</div>
+        <a href="{% url 'bdm_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'bdm_dashboard' %}active{% endif %}">
+            <i class="fas fa-th-large"></i> Dashboard
+        </a>
+        <a href="{% url 'lead_list' %}" class="nav-link {% if request.resolver_match.url_name == 'lead_list' %}active{% endif %}">
+            <i class="fas fa-filter"></i> Leads Mgmt
+        </a>
+        <a href="#" class="nav-link"><i class="fas fa-headset"></i> Enquiry Logs</a>
+
+        <div class="nav-category">Operations</div>
+        <a href="{% url 'admission_list' %}" class="nav-link {% if request.resolver_match.url_name == 'admission_list' %}active{% endif %}">
+            <i class="fas fa-wallet"></i> Admissions
+        </a>
+        <a href="#" class="nav-link"><i class="fas fa-user-check"></i> Onboarding</a>
+        <a href="{% url 'batch_list' %}" class="nav-link"><i class="fas fa-chalkboard-teacher"></i> Batches</a>
+
+        <div class="nav-category">Admin</div>
+        <a href="#" class="nav-link"><i class="fas fa-chart-pie"></i> Reports</a>
+        <a href="#" class="nav-link"><i class="fas fa-cog"></i> Settings</a>
+
+        <div class="mt-5">
+            <a href="#" class="nav-link text-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        
+        <div class="top-header">
+            <div>
+                <h4 class="fw-bold mb-0">{% block page_title %}Dashboard{% endblock %}</h4>
+                <p class="text-muted small mb-0">{% block page_subtitle %}Overview of Institute Performance{% endblock %}</p>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <input type="text" class="search-bar d-none d-md-block" placeholder="Search...">
+                <div class="position-relative">
+                    <i class="fas fa-bell text-secondary"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                </div>
+                <div class="fw-bold text-dark">{{ request.user.first_name }}</div>
+                <img src="https://ui-avatars.com/api/?name={{ request.user.first_name }}&background=5e72e4&color=fff" class="rounded-circle shadow-sm" width="40">
+            </div>
+        </div>
+
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

@@ -7,20 +7,58 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
     <style>
         body { background: #eef2f7; font-family: 'Poppins', sans-serif; }
-        .sidebar { height: 100vh; width: 240px; position: fixed; background: #fff; padding-top: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.05); }
-        .sidebar a { color: #6c757d; display: block; padding: 15px 25px; text-decoration: none; font-weight: 500; }
-        .sidebar a:hover, .sidebar a.active { color: #727cf5; background: #f9f9fd; border-right: 3px solid #727cf5; }
+        
+        /* --- FIXED SIDEBAR CSS --- */
+        .sidebar { 
+            height: 100vh; 
+            width: 240px; 
+            position: fixed; 
+            background: #fff; 
+            padding-top: 20px; 
+            box-shadow: 2px 0 5px rgba(0,0,0,0.05); 
+            overflow-y: auto; 
+            z-index: 1000;
+        }
+
+        .sidebar h4 { margin-bottom: 30px; font-weight: 700; letter-spacing: 1px; }
+
+        .sidebar a { 
+            color: #6c757d; 
+            display: block; 
+            padding: 12px 25px; 
+            text-decoration: none; 
+            font-weight: 500; 
+            transition: 0.3s;
+        }
+        
+        .sidebar a:hover, .sidebar a.active { 
+            color: #727cf5; 
+            background: #f9f9fd; 
+            border-right: 4px solid #727cf5; 
+        }
+
         .main-content { margin-left: 240px; padding: 30px; }
-        .stat-card { background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .task-list { background: #fff; padding: 20px; border-radius: 10px; margin-top: 20px; }
-        .task-item { border-bottom: 1px solid #f1f3fa; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Mobile Responsive adjustment */
+        @media (max-width: 768px) {
+            .sidebar { width: 70px; text-align: center; padding-left: 0; padding-right: 0; }
+            .sidebar h4, .sidebar span { display: none; }
+            .sidebar a { padding: 15px 0; }
+            .main-content { margin-left: 70px; }
+        }
+
+        .stat-card { background: #fff; padding: 25px; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); height: 100%; }
+        
+        /* New Styles for Timeline/Notice */
+        .notice-item { border-left: 4px solid #727cf5; background: #fff; padding: 15px; margin-bottom: 10px; border-radius: 4px; }
+        .schedule-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; }
+        .schedule-time { min-width: 80px; font-weight: bold; color: #727cf5; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
         <h4 class="text-center mb-4 text-primary">StudyLab</h4>
-        <a href="{% url 'dashboard' %}" class="active"><i class="fas fa-home"></i> Dashboard</a>
         <a href="{% url 'student_profile' %}"><i class="fas fa-user"></i> Profile</a>
         <a href="{% url 'my_attendance' %}"><i class="fas fa-chart-pie"></i> Attendance</a>
         <a href="{% url 'apply_leave' %}"><i class="fas fa-calendar-minus"></i> Apply Leave</a>
@@ -36,66 +74,136 @@
 
     <div class="main-content">
         
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3>Hello, {{ user.first_name }}!</h3>
-            <span class="badge badge-light p-2">ID: {{ student.student_id }}</span>
+ <div class="card shadow-sm mb-4 border-0">
+    <div class="card-body d-flex align-items-center justify-content-between">
+        
+        <div class="d-flex align-items-center">
+            <div class="mr-3">
+                {% if student.profile_image %}
+                    <img src="{{ student.profile_image.url }}" class="rounded-circle" width="60" height="60" style="object-fit: cover;">
+                {% else %}
+                    <div class="bg-light rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="fas fa-user-graduate fa-2x text-primary"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <div>
+                <h4 class="mb-0 text-dark">Welcome back, {{ user.first_name|default:user.username }}!</h4>
+                <small class="text-muted">Student ID: <strong>{{ student.student_id }}</strong></small>
+            </div>
         </div>
+
+        <div class="text-right d-none d-md-block">
+            <h6 class="text-muted mb-0">{% now "l, jS F Y" %}</h6> <span class="badge badge-pill badge-success px-3">Active Student</span>
+        </div>
+
+    </div>
+</div>
 
         {% if messages %}
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                </div>
             {% endfor %}
         {% endif %}
 
         <div class="row">
             
-            <div class="col-md-4">
-                <div class="stat-card">
+            <div class="col-md-4 mb-3">
+                <div class="stat-card border-left border-warning">
                     <h6 class="text-muted">Fee Status</h6>
-                    {% if student.is_fee_paid %}
-                        <h3 class="text-success">Paid <i class="fas fa-check-circle"></i></h3>
+                    {% if balance <= 0 %}
+                         <h3 class="text-success">Fully Paid <i class="fas fa-check-circle"></i></h3>
                     {% else %}
-                        <h3 class="text-danger">Pending</h3>
-                        <a href="{% url 'pay_fee' %}" class="btn btn-danger btn-sm mt-2">
-                            <i class="fas fa-credit-card"></i> Pay Now
+                        <h3 class="text-danger">₹{{ balance }} Pending</h3>
+                        <small class="text-muted">Total Fee: ₹{{ student.course.price }}</small>
+                        <br>
+                        <a href="{% url 'pay_fee' %}" class="btn btn-warning btn-sm mt-3 w-100">
+                            <i class="fas fa-credit-card"></i> Pay Balance
                         </a>
                     {% endif %}
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="stat-card">
+            <div class="col-md-4 mb-3">
+                <div class="stat-card border-left border-info">
                     <h6 class="text-muted">Attendance</h6>
                     <h3>{{ percentage|default:"0" }}%</h3>
+                    <div class="progress mt-2" style="height: 5px;">
+                        <div class="progress-bar bg-info" style="width: {{ percentage|default:'0' }}%"></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <h6 class="text-muted">Course</h6>
-                    <h3>{{ student.course.name }}</h3>
+            <div class="col-md-4 mb-3">
+                <div class="stat-card border-left border-success">
+                    <h6 class="text-muted">Active Course</h6>
+                    <h3>{{ student.course.name|default:"Not Enrolled" }}</h3>
+                    <small>{{ student.batch.name|default:"No Batch Assigned" }}</small>
                 </div>
             </div>
             
-        </div> <div class="row">
-            <div class="col-md-12">
-                <div class="task-list">
-                    <h5><i class="fas fa-tasks"></i> Pending Requirements</h5>
-                    
-                    <div class="task-item">
-                        <span>1. Submit Aadhaar & Photos</span>
-                        {% if student.documents_verified %}
-                            <span class="badge badge-success">Verified</span>
-                        {% else %}
-                            <a href="#" class="btn btn-sm btn-primary">Upload Now</a>
-                        {% endif %}
-                    </div>
-
-                    </div>
-            </div>
         </div>
 
-    </div>
+        <div class="row mt-4">
+            
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="far fa-clock text-primary"></i> Today's Schedule</h5>
+                        <a href="{% url 'my_classroom' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="schedule-item">
+                            <div class="schedule-time">10:00 AM</div>
+                            <div>
+                                <h6 class="mb-0">Python Core Concepts</h6>
+                                <small class="text-muted">Trainer: John Doe</small>
+                            </div>
+                        </div>
+                        <div class="schedule-item">
+                            <div class="schedule-time">02:00 PM</div>
+                            <div>
+                                <h6 class="mb-0">Django Lab Session</h6>
+                                <small class="text-muted">Lab 3</small>
+                            </div>
+                        </div>
+                         </div>
+                </div>
+            </div>
 
+            <div class="col-md-6 mb-3">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white border-bottom">
+                        <h5 class="mb-0"><i class="fas fa-bullhorn text-warning"></i> Notice Board</h5>
+                    </div>
+                    <div class="card-body bg-light">
+                        
+                        <div class="notice-item shadow-sm">
+                            <div class="d-flex justify-content-between">
+                                <strong>Exam Registration</strong>
+                                <small class="text-muted">Today</small>
+                            </div>
+                            <p class="mb-0 small text-muted">Registration for final exams closes tonight.</p>
+                        </div>
+
+                        <div class="notice-item shadow-sm" style="border-left-color: #dc3545;">
+                            <div class="d-flex justify-content-between">
+                                <strong>Holiday Alert</strong>
+                                <small class="text-muted">2 Days ago</small>
+                            </div>
+                            <p class="mb-0 small text-muted">Institute remains closed on Friday.</p>
+                        </div>
+                        </div>
+                </div>
+            </div>
+
+        </div>
+        </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

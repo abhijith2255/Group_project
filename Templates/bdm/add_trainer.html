@@ -1,0 +1,65 @@
+{% extends 'bdm/base.html' %}
+
+{% block title %}Add Trainer | EduPro{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0 text-primary">
+                        <i class="fas fa-chalkboard-teacher me-2"></i>Add New Trainer
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <h6 class="text-uppercase text-muted small fw-bold mb-3">Personal Details</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">First Name</label>
+                                <input type="text" name="first_name" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Last Name</label>
+                                <input type="text" name="last_name" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Email Address</label>
+                                <input type="email" name="email" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Profile Photo</label>
+                                <input type="file" name="profile_image" class="form-control">
+                            </div>
+                        </div>
+
+                        <h6 class="text-uppercase text-muted small fw-bold mb-3">Professional Info</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Designation</label>
+                                <input type="text" name="designation" class="form-control" placeholder="e.g. Senior Python Instructor" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Expertise (Comma Separated)</label>
+                                <input type="text" name="expertise" class="form-control" placeholder="e.g. Python, Django, React" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label small fw-bold">Short Bio</label>
+                                <textarea name="bio" class="form-control" rows="3" placeholder="Brief description of experience..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <a href="{% url 'trainer_list' %}" class="btn btn-light me-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold">Save Trainer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
