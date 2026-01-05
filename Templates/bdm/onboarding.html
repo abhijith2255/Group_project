@@ -1,0 +1,72 @@
+{% extends 'bdm/base.html' %}
+{% block title %}Onboarding - {{ student.user.first_name }} | EduPro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'admission_list' %}" class="btn btn-light rounded-circle me-3 shadow-sm">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h4 class="fw-bold mb-0">Student Onboarding</h4>
+                <p class="text-muted small mb-0">Prepare <strong>{{ student.user.first_name }}</strong> for their first day</p>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                
+                <div class="d-flex align-items-center mb-4 p-3 bg-light rounded-3">
+                    <div class="bg-white rounded-circle p-2 shadow-sm me-3 text-primary fw-bold d-flex align-items-center justify-content-center" style="width:50px; height:50px;">
+                        {{ student.user.first_name|slice:":1" }}
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">{{ student.user.first_name }} {{ student.user.last_name }}</h6>
+                        <span class="small text-muted">{{ student.course.name }}</span>
+                    </div>
+                    <div class="ms-auto">
+                        <span class="badge bg-primary rounded-pill">ID: {{ student.student_id }}</span>
+                    </div>
+                </div>
+
+                <form method="POST">
+                    {% csrf_token %}
+                    <h6 class="fw-bold text-uppercase small text-muted mb-3">Checklist</h6>
+                    
+                    <div class="vstack gap-2">
+                        {% for task in tasks %}
+                        <label class="d-flex align-items-center p-3 border rounded-3 hover-bg-light cursor-pointer">
+                            <input class="form-check-input me-3" type="checkbox" name="tasks" value="{{ task.id }}" 
+                                   style="width: 1.3em; height: 1.3em;"
+                                   {% if task.completed %}checked disabled{% endif %}>
+                            
+                            <span class="fw-semibold {% if task.completed %}text-decoration-line-through text-muted{% endif %}">
+                                {{ task.label }}
+                            </span>
+                            
+                            {% if task.completed %}
+                            <i class="fas fa-check-circle text-success ms-auto"></i>
+                            {% endif %}
+                        </label>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold py-2">
+                            Complete Onboarding <i class="fas fa-check ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .hover-bg-light:hover { background-color: #f8f9fa; cursor: pointer; }
+</style>
+{% endblock %}

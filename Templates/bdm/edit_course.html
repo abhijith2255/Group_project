@@ -1,12 +1,13 @@
 {% extends 'bdm/base.html' %}
-{% block title %}Add Course | EduPro{% endblock %}
+{% block title %}Edit Course | EduPro{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center mt-4">
-    <div class="col-lg-8"> <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-header bg-white py-3 border-bottom">
-                <h5 class="fw-bold mb-0 text-primary">
-                    <i class="fas fa-plus-circle me-2"></i>Create New Course
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-warning-subtle py-3 border-bottom">
+                <h5 class="fw-bold mb-0 text-warning-emphasis">
+                    <i class="fas fa-edit me-2"></i>Edit Course: {{ course.name }}
                 </h5>
             </div>
             <div class="card-body p-4">
@@ -16,29 +17,37 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-7">
                             <label class="form-label small fw-bold text-secondary">Course Name</label>
-                            <input type="text" name="name" class="form-control" placeholder="e.g. Python Full Stack" required>
+                            <input type="text" name="name" class="form-control" value="{{ course.name }}" required>
                         </div>
                         <div class="col-md-5">
-                            <label class="form-label small fw-bold text-secondary">Course Image</label>
+                            <label class="form-label small fw-bold text-secondary">Update Image</label>
                             <input type="file" name="image" class="form-control" accept="image/*">
+                            {% if course.image %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Current:</small>
+                                    <img src="{{ course.image.url }}" alt="Current" class="rounded ms-2" style="height: 30px;">
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
 
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label small fw-bold text-secondary">Total Fees (₹)</label>
-                            <input type="number" name="price" class="form-control" placeholder="e.g. 45000" required>
+                            <input type="number" name="price" class="form-control" value="{{ course.price|floatformat:0 }}" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-bold text-secondary">Duration</label>
-                            <input type="text" name="duration" class="form-control" placeholder="e.g. 6 Months" required>
+                            <input type="text" name="duration" class="form-control" value="{{ course.duration }}" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-bold text-secondary">Lead Trainer</label>
                             <select name="trainer_id" class="form-select">
                                 <option value="">-- Assign Trainer --</option>
                                 {% for trainer in trainers %}
-                                <option value="{{ trainer.id }}">{{ trainer.full_name }}</option>
+                                    <option value="{{ trainer.id }}" {% if course.trainer_id == trainer.id %}selected{% endif %}>
+                                        {{ trainer.full_name }}
+                                    </option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -46,12 +55,12 @@
 
                     <div class="mb-4">
                         <label class="form-label small fw-bold text-secondary">Description</label>
-                        <textarea name="description" class="form-control" rows="3" placeholder="Enter course syllabus summary..."></textarea>
+                        <textarea name="description" class="form-control" rows="4">{{ course.description }}</textarea>
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <a href="{% url 'course_list' %}" class="btn btn-light fw-bold px-4">Cancel</a>
-                        <button type="submit" class="btn btn-primary fw-bold px-4 rounded-pill">Save Course</button>
+                        <button type="submit" class="btn btn-warning fw-bold px-4 rounded-pill">Update Course</button>
                     </div>
                 </form>
             </div>

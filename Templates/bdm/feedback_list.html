@@ -1,0 +1,85 @@
+{% extends 'bdm/base.html' %}
+{% block title %}Student Feedbacks | EduPro{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Student Feedback</h4>
+        <p class="text-muted small mb-0">Reviews and ratings from enrolled students</p>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light text-uppercase small text-muted">
+                    <tr>
+                        <th class="ps-4 py-3">Student</th>
+                        <th class="py-3">Rating</th>
+                        <th class="py-3">Category</th>
+                        <th class="py-3">Comment</th>
+                        <th class="py-3 text-end pe-4">Date</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for item in feedbacks %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold me-3 shadow-sm" 
+                                     style="width: 40px; height: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); font-size: 1rem;">
+                                    {{ item.student.user.first_name|slice:":1" }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">{{ item.student.user.first_name }} {{ item.student.user.last_name }}</div>
+                                    <div class="small text-muted">{{ item.student.course.name }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="text-warning">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= item.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-muted opacity-25"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <span class="ms-1 text-dark fw-bold small">({{ item.rating }}.0)</span>
+                            </div>
+                        </td>
+
+                        <td>
+                            <span class="badge bg-light text-dark border px-3 py-2 rounded-pill">
+                                {{ item.get_feedback_type_display }}
+                            </span>
+                        </td>
+
+                        <td style="max-width: 300px;">
+                            <p class="mb-0 text-muted small text-truncate" title="{{ item.comments }}">
+                                "{{ item.comments }}"
+                            </p>
+                        </td>
+
+                        <td class="text-end pe-4 text-muted small">
+                            {{ item.date_submitted|date:"M d, Y" }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="mb-3 text-muted opacity-25">
+                                <i class="fas fa-comment-slash fa-3x"></i>
+                            </div>
+                            <p class="text-muted fw-bold">No feedback received yet.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

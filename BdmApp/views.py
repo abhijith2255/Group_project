@@ -9,10 +9,12 @@ from django.db import transaction
 import random
 import json
 import string # Added for robust password generation
-
+from dateutil.relativedelta import relativedelta # You might need to install this: pip install python-dateutil
+import datetime
+# Make sure to import FeeInstallment at the top
 # --- IMPORT MODELS ---
-from .models import Lead, LeadSource, Interaction
-from StudentApp.models import Student, Course, FeePayment, Batch,Trainer
+from .models import Lead, LeadSource, Interaction,FeeInstallment
+from StudentApp.models import Student, Course, FeePayment, Batch, StudentFeedback,Trainer
 
 # --- ACCESS CONTROL ---
 def is_bdm(user):
@@ -259,13 +261,22 @@ def record_payment(request, student_id):
 @login_required
 @user_passes_test(is_bdm)
 def add_lead(request):
-    """Create a new lead manually"""
+    """Create a new lead manually (Updated with new fields)"""
     if request.method == 'POST':
+        # Basic Info
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         email = request.POST.get('email')
         phone = request.POST.get('phone')
         city = request.POST.get('city')
+        
+        # New Fields
+        age = request.POST.get('age')
+        gender = request.POST.get('gender')
+        qualification = request.POST.get('qualification')
+        payment_type = request.POST.get('payment_type')
+
+        # Relations
         course_id = request.POST.get('course_id')
         source_id = request.POST.get('source_id')
         status = request.POST.get('status')
@@ -280,6 +291,12 @@ def add_lead(request):
                 email=email,
                 phone=phone,
                 city=city,
+                # Save new fields
+                age=age if age else None,
+                gender=gender,
+                qualification=qualification,
+                payment_type=payment_type,
+                # Save relations
                 course_interested=course,
                 source=source,
                 status=status,
@@ -300,7 +317,6 @@ def add_lead(request):
         'courses': courses, 
         'sources': sources
     })
-
 # ==========================================
 # 7. BATCH MANAGEMENT
 # ==========================================
@@ -419,36 +435,42 @@ def course_list(request):
     courses = Course.objects.all().order_by('name')
     return render(request, 'bdm/course_list.html', {'courses': courses})
 
+# BdmApp/views.py
+
 @login_required
 @user_passes_test(is_bdm)
 def add_course(request):
-    """Add a new course with image"""
     if request.method == 'POST':
+        # 1. Capture Data
         name = request.POST.get('name')
         duration = request.POST.get('duration')
         price = request.POST.get('price')
         description = request.POST.get('description')
+        trainer_id = request.POST.get('trainer_id')
         
-        # GET THE IMAGE
-        image = request.FILES.get('image') 
+        image = request.FILES.get('image') # Requires enctype="multipart/form-data" in HTML
 
-        try:
-            Course.objects.create(
-                name=name,
-                duration=duration,
-                price=price,
-                description=description,
-                image=image  # Save the image
-            )
-            messages.success(request, f"Course '{name}' added successfully!")
-            return redirect('course_list')
-            
-        except Exception as e:
-            messages.error(request, f"Error adding course: {str(e)}")
-            return redirect('add_course')
+        # 2. Process Logic (NO TRY/EXCEPT BLOCK)
+        trainer_obj = None
+        if trainer_id and trainer_id.strip() != "":
+            trainer_obj = Trainer.objects.get(id=trainer_id)
 
-    return render(request, 'bdm/add_course.html')
+        # 3. Create Course
+        Course.objects.create(
+            name=name,
+            duration=duration,
+            price=price,
+            description=description,
+            image=image, 
+            trainer=trainer_obj
+        )
+        
+        messages.success(request, f"Course '{name}' added successfully!")
+        return redirect('course_list')
 
+    # GET Request
+    trainers = Trainer.objects.all()
+    return render(request, 'bdm/add_course.html', {'trainers': trainers})
 @login_required
 @user_passes_test(is_bdm)
 def add_batch(request):
@@ -549,3 +571,248 @@ def add_student_to_specific_batch(request, batch_id):
         messages.success(request, f"Added {student.user.first_name} to batch.")
         
     return redirect('batch_detail', batch_id=batch_id)
+
+# BdmApp/views.py
+
+@login_required
+@user_passes_test(is_bdm)
+def onboarding_checklist(request, student_id):
+    """Manage student onboarding tasks"""
+    student = get_object_or_404(Student, id=student_id)
+
+    # Define standard tasks (You could make a model for this later if needed)
+    default_tasks = [
+        {'id': 'fee', 'label': 'Registration Fee Paid', 'completed': student.is_fee_paid},
+        {'id': 'id_card', 'label': 'ID Card Issued', 'completed': False},
+        {'id': 'lms', 'label': 'LMS Access Granted', 'completed': False},
+        {'id': 'kit', 'label': 'Welcome Kit Given', 'completed': False},
+        {'id': 'whatsapp', 'label': 'Added to WhatsApp Group', 'completed': False},
+    ]
+
+    if request.method == 'POST':
+        # In a real app, you would save these statuses to a model.
+        # For now, we will simulate completing the onboarding.
+        
+        # Example: Mark student as 'Active' if they weren't already
+        completed_tasks = request.POST.getlist('tasks')
+        
+        if len(completed_tasks) >= 3: # If mostly done
+            messages.success(request, f"Onboarding updated for {student.user.first_name}!")
+            return redirect('admission_list')
+        else:
+            messages.warning(request, "Please complete key tasks before finishing.")
+
+    return render(request, 'bdm/onboarding.html', {
+        'student': student,
+        'tasks': default_tasks
+    })
+@login_required
+@user_passes_test(is_bdm)
+def onboarding_list(request):
+    """Show list of students for onboarding"""
+    # You might want to filter this later (e.g., only students who paid fees)
+    students = Student.objects.all().order_by('-id')
+    return render(request, 'bdm/onboarding_list.html', {'students': students})
+
+# BdmApp/views.py
+
+@login_required
+@user_passes_test(is_bdm)
+def student_detail(request, student_id):
+    """View full profile of a student"""
+    student = get_object_or_404(Student, id=student_id)
+    
+    # 1. Get Course Price
+    # Your model uses 'price', so we use student.course.price
+    total_fee = student.course.price 
+    
+    # 2. Calculate Total Paid
+    # We look at the 'FeePayment' table (accessed via feepayment_set) and sum the 'amount'
+    payment_data = student.feepayment_set.aggregate(total=Sum('amount'))
+    
+    # If no payments exist, the result is None, so we default to 0
+    paid_amount = payment_data['total'] or 0
+
+    # 3. Calculate Balance
+    balance = total_fee - paid_amount
+    
+    return render(request, 'bdm/student_detail.html', {
+        'student': student,
+        'total_fee': total_fee,
+        'paid_amount': paid_amount,
+        'balance': balance
+    })
+# BdmApp/views.py
+
+@login_required
+@user_passes_test(is_bdm)
+def edit_student(request, student_id):
+    """Edit student profile details"""
+    student = get_object_or_404(Student, id=student_id)
+    courses = Course.objects.all()
+    batches = Batch.objects.filter(course=student.course) if student.course else Batch.objects.none()
+
+    if request.method == 'POST':
+        # 1. Update User Model (Name, Email)
+        user = student.user
+        user.first_name = request.POST.get('first_name')
+        user.last_name = request.POST.get('last_name')
+        user.email = request.POST.get('email')
+        user.save()
+
+        # 2. Update Student Model (Phone, Address, etc.)
+        student.phone = request.POST.get('phone')
+        student.address = request.POST.get('address')
+        student.gender = request.POST.get('gender')
+        
+        # Handle Date of Birth (check if empty)
+        dob = request.POST.get('dob')
+        if dob:
+            student.date_of_birth = dob
+
+        # Handle Course & Batch changes
+        course_id = request.POST.get('course')
+        batch_id = request.POST.get('batch')
+        
+        if course_id:
+            student.course_id = course_id
+        if batch_id:
+            student.batch_id = batch_id
+            
+        student.save()
+        
+        messages.success(request, "Student profile updated successfully!")
+        return redirect('student_detail', student_id=student.id)
+
+    # If GET request, show the form
+    # We fetch all courses to populate dropdown
+    all_courses = Course.objects.all()
+    # We fetch batches related to the current course
+    if student.course:
+        related_batches = Batch.objects.filter(course=student.course)
+    else:
+        related_batches = Batch.objects.all()
+
+    return render(request, 'bdm/edit_student.html', {
+        'student': student,
+        'courses': all_courses,
+        'batches': related_batches
+    })
+
+@login_required
+@user_passes_test(is_bdm)
+def record_payment(request, student_id):
+    """Record a payment (Down Payment) and optionally generate EMIs"""
+    student = get_object_or_404(Student, id=student_id)
+    
+    if request.method == 'POST':
+        try:
+            amount = float(request.POST.get('amount', 0)) # Default to 0 if empty
+        except ValueError:
+            amount = 0.0
+            
+        mode = request.POST.get('mode') # CASH, UPI, EMI
+        installments_count = request.POST.get('installments')
+        
+        # 1. Record the Immediate Payment (Down Payment)
+        if amount > 0:
+            FeePayment.objects.create(
+                student=student,
+                amount=amount,
+                mode=mode
+            )
+        
+        # 2. IF EMI: Generate Future Installments
+        if mode == 'EMI' and installments_count:
+            try:
+                count = int(installments_count)
+            except ValueError:
+                count = 1
+
+            # Calculate Remaining Balance
+            total_fee = float(student.course.price)
+            # This sum now INCLUDES the payment we just recorded above
+            paid_so_far = student.feepayment_set.aggregate(total=Sum('amount'))['total'] or 0
+            
+            balance = total_fee - float(paid_so_far)
+            
+            if balance > 0:
+                emi_amount = balance / count
+                today = datetime.date.today()
+                
+                # Loop to create future records
+                for i in range(1, count + 1):
+                    # Calculate date: Today + i months
+                    next_date = today + relativedelta(months=+i)
+                    
+                    FeeInstallment.objects.create(
+                        student=student,
+                        amount=emi_amount,
+                        due_date=next_date,
+                        is_paid=False
+                    )
+                
+                messages.success(request, f"Payment recorded & {count} EMIs generated!")
+            else:
+                messages.warning(request, "Payment recorded, but no balance left for EMIs.")
+
+        # 3. Check if full fee is paid (Standard Logic)
+        total_fee = student.course.price
+        paid_final = student.feepayment_set.aggregate(total=Sum('amount'))['total'] or 0
+        
+        # Use a small buffer for float comparison errors
+        if paid_final >= (float(total_fee) - 1.0):
+            student.is_fee_paid = True
+            student.save()
+            
+        if mode != 'EMI':
+            messages.success(request, f"Payment of ₹{amount} recorded successfully.")
+            
+        return redirect('admission_list')
+    
+    return redirect('admission_list')
+
+# BdmApp/views.py
+
+@login_required
+@user_passes_test(is_bdm)
+def edit_course(request, course_id):
+    """Edit an existing course"""
+    course = get_object_or_404(Course, id=course_id)
+    
+    if request.method == 'POST':
+        # 1. Update Fields
+        course.name = request.POST.get('name')
+        course.duration = request.POST.get('duration')
+        course.price = request.POST.get('price')
+        course.description = request.POST.get('description')
+        
+        # 2. Update Trainer
+        trainer_id = request.POST.get('trainer_id')
+        if trainer_id:
+            course.trainer = Trainer.objects.get(id=trainer_id)
+        else:
+            course.trainer = None # Allow removing trainer
+            
+        # 3. Update Image (Only if a new one is uploaded)
+        new_image = request.FILES.get('image')
+        if new_image:
+            course.image = new_image
+            
+        course.save()
+        messages.success(request, f"Course '{course.name}' updated successfully!")
+        return redirect('course_list')
+
+    # GET Request: Show form with existing data
+    trainers = Trainer.objects.all()
+    return render(request, 'bdm/edit_course.html', {
+        'course': course, 
+        'trainers': trainers
+    })
+
+@login_required
+@user_passes_test(is_bdm)
+def feedback_list(request):
+    """List all student feedbacks"""
+    feedbacks = StudentFeedback.objects.select_related('student__user').order_by('-date_submitted')
+    return render(request, 'bdm/feedback_list.html', {'feedbacks': feedbacks})

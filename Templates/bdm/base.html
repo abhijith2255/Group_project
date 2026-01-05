@@ -57,21 +57,23 @@
         <a href="{% url 'lead_list' %}" class="nav-link {% if request.resolver_match.url_name == 'lead_list' %}active{% endif %}">
             <i class="fas fa-filter"></i> Leads Mgmt
         </a>
-        <a href="#" class="nav-link"><i class="fas fa-headset"></i> Enquiry Logs</a>
 
         <div class="nav-category">Operations</div>
         <a href="{% url 'admission_list' %}" class="nav-link {% if request.resolver_match.url_name == 'admission_list' %}active{% endif %}">
             <i class="fas fa-wallet"></i> Admissions
         </a>
-        <a href="#" class="nav-link"><i class="fas fa-user-check"></i> Onboarding</a>
+        <a href="{% url 'onboarding_list' %}" class="nav-link {% if 'onboarding' in request.path %}active{% endif %}">
+             <i class="fas fa-user-check"></i> Onboarding
+        </a>
         <a href="{% url 'batch_list' %}" class="nav-link"><i class="fas fa-chalkboard-teacher"></i> Batches</a>
 
-        <div class="nav-category">Admin</div>
+        <a href="{% url 'feedback_list' %}" class="nav-link"><i class="fas fa-comment-alt"></i> Feedbacks</a>
+        
         <a href="#" class="nav-link"><i class="fas fa-chart-pie"></i> Reports</a>
         <a href="#" class="nav-link"><i class="fas fa-cog"></i> Settings</a>
 
         <div class="mt-5">
-            <a href="#" class="nav-link text-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="{% url 'logout' %}" class="nav-link text-danger"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
     </nav>
 

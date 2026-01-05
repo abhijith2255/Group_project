@@ -24,6 +24,7 @@ class Course(models.Model):
     image = models.ImageField(upload_to='courses/images/') 
     price = models.DecimalField(max_digits=10, decimal_places=2)
     description = models.TextField()
+    duration = models.CharField(max_length=50, default="6 Months")
 
     def __str__(self):
         return self.name

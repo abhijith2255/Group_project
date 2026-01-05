@@ -1,0 +1,91 @@
+{% extends 'bdm/base.html' %}
+{% block title %}Edit Student | EduPro{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'student_detail' student.id %}" class="btn btn-light rounded-circle me-3 shadow-sm">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h4 class="fw-bold mb-0">Edit Profile</h4>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <h6 class="fw-bold text-primary mb-3 text-uppercase small">Personal Information</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">First Name</label>
+                            <input type="text" name="first_name" class="form-control" value="{{ student.user.first_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Last Name</label>
+                            <input type="text" name="last_name" class="form-control" value="{{ student.user.last_name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Email Address</label>
+                            <input type="email" name="email" class="form-control" value="{{ student.user.email }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Phone Number</label>
+                            <input type="text" name="phone" class="form-control" value="{{ student.phone }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Date of Birth</label>
+                            <input type="date" name="dob" class="form-control" value="{{ student.date_of_birth|date:'Y-m-d' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Gender</label>
+                            <select name="gender" class="form-select">
+                                <option value="M" {% if student.gender == 'M' %}selected{% endif %}>Male</option>
+                                <option value="F" {% if student.gender == 'F' %}selected{% endif %}>Female</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-muted">Address</label>
+                            <textarea name="address" class="form-control" rows="2">{{ student.address }}</textarea>
+                        </div>
+                    </div>
+
+                    <hr class="opacity-10 my-4">
+
+                    <h6 class="fw-bold text-primary mb-3 text-uppercase small">Academic Details</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Course</label>
+                            <select name="course" class="form-select">
+                                {% for course in courses %}
+                                <option value="{{ course.id }}" {% if student.course.id == course.id %}selected{% endif %}>
+                                    {{ course.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-muted">Batch</label>
+                            <select name="batch" class="form-select">
+                                <option value="">Select Batch</option>
+                                {% for batch in batches %}
+                                <option value="{{ batch.id }}" {% if student.batch.id == batch.id %}selected{% endif %}>
+                                    {{ batch.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 d-flex gap-2">
+                        <a href="{% url 'student_detail' student.id %}" class="btn btn-light rounded-pill px-4 fw-bold">Cancel</a>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold flex-grow-1">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

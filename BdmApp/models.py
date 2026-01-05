@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-
+from StudentApp.models import Student
 # ==========================================
 # 1. SETTINGS & MARKETING
 # ==========================================
@@ -24,7 +24,7 @@ class Campaign(models.Model):
     def __str__(self):
         return self.name
 
-# ==========================================
+# ========================================co==
 # 2. LEAD MANAGEMENT (CORE)
 # ==========================================
 
@@ -44,6 +44,10 @@ class Lead(models.Model):
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15, unique=True)
     city = models.CharField(max_length=100, blank=True)
+    age = models.IntegerField(null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=[('Male','Male'), ('Female','Female'), ('Other','Other')], null=True, blank=True)
+    qualification = models.CharField(max_length=100, null=True, blank=True, help_text="e.g. B.Tech, MCA, 12th")
+    payment_type = models.CharField(max_length=20, choices=[('One-Time','One-Time'), ('Installment','Installment')], null=True, blank=True)
     
     # --- Integration with StudentApp ---
     # We use a string reference 'StudentApp.Course' to avoid circular import errors
@@ -108,3 +112,12 @@ class Interaction(models.Model):
 
     def __str__(self):
         return f"{self.lead.first_name} - {self.interaction_type}"
+    
+class FeeInstallment(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='installments')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    due_date = models.DateField()
+    is_paid = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"{self.student.user.username} - {self.amount} Due: {self.due_date}"
