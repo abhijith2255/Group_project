@@ -1,0 +1,106 @@
+{% extends 'bdm/base.html' %} {% block title %}Manage Leaves | Admin Portal{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-dark">Leave Requests</h3>
+            <p class="text-muted mb-0">Review and manage trainer time-off requests.</p>
+        </div>
+        <span class="badge bg-primary fs-6 px-3 py-2 rounded-pill">{{ pending_leaves.count }} Pending</span>
+    </div>
+
+    <div class="card border-0 shadow-sm rounded-4 mb-5">
+        <div class="card-header bg-warning bg-opacity-10 border-0 p-3">
+            <h6 class="fw-bold text-warning mb-0"><i class="fas fa-clock me-2"></i>Pending Approvals</h6>
+        </div>
+        <div class="card-body p-0">
+            {% if pending_leaves %}
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Trainer</th>
+                            <th>Dates</th>
+                            <th>Reason</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in pending_leaves %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold text-dark">{{ leave.trainer.full_name }}</div>
+                                <small class="text-muted">{{ leave.trainer.designation }}</small>
+                            </td>
+                            <td>
+                                <div class="text-dark fw-bold">{{ leave.start_date|date:"M d" }} - {{ leave.end_date|date:"M d" }}</div>
+                                <small class="text-muted">{{ leave.start_date|timesince:leave.end_date }} Days</small>
+                            </td>
+                            <td style="max-width: 300px;">
+                                <span class="text-secondary">{{ leave.reason }}</span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'update_trainer_leave' leave.id 'Approved' %}" class="btn btn-success btn-sm rounded-pill fw-bold px-3">
+                                    <i class="fas fa-check me-1"></i> Approve
+                                </a>
+                                <a href="{% url 'update_trainer_leave' leave.id 'Rejected' %}" class="btn btn-outline-danger btn-sm rounded-pill fw-bold px-3 ms-1">
+                                    <i class="fas fa-times me-1"></i> Reject
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle text-success fa-3x mb-3 opacity-25"></i>
+                <p class="text-muted">No pending requests. You are all caught up!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <h5 class="fw-bold text-dark mb-3">Approval History</h5>
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Trainer</th>
+                            <th>Leave Date</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Processed On</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for leave in history_leaves %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-secondary">{{ leave.trainer.full_name }}</td>
+                            <td>{{ leave.start_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% if leave.status == 'Approved' %}
+                                    <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">Approved</span>
+                                {% else %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger rounded-pill px-3">Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4 text-muted small">
+                                {{ leave.applied_on|date:"M d, Y" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">No history available.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

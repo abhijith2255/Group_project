@@ -375,13 +375,48 @@ def trainer_dashboard(request):
     try:
         trainer = request.user.trainer
     except Trainer.DoesNotExist:
-        messages.error(request, "Access Denied: You are not a Trainer.")
+        messages.error(request, "Access Denied")
         return redirect('login')
 
-    my_batches = Batch.objects.filter(trainer=trainer)
+    # 1. Fetch Batches
+    batches = Batch.objects.filter(trainer=trainer).order_by('time_slot')
+    today = timezone.now().date()
+    
+    dashboard_data = []
+    
+    for batch in batches:
+        # --- THE FIX IS HERE ---
+        # Old (Error): Attendance.objects.filter(batch=batch, ...)
+        # New (Fixed): Attendance.objects.filter(student__batch=batch, ...)
+        is_attendance_marked = Attendance.objects.filter(student__batch=batch, date=today).exists()
+        
+        # Calculate Syllabus Progress
+        total_topics = Syllabus.objects.filter(course=batch.course).count()
+        completed_topics = BatchProgress.objects.filter(batch=batch).count()
+        
+        if total_topics > 0:
+            progress = int((completed_topics / total_topics) * 100)
+        else:
+            progress = 0
+            
+        dashboard_data.append({
+            'batch': batch,
+            'student_count': batch.students.count(),
+            'is_attendance_marked': is_attendance_marked,
+            'progress': progress,
+            'completed_topics': completed_topics,
+            'total_topics': total_topics,
+        })
+
+    # 3. Stats
+    total_students = Student.objects.filter(batch__in=batches).count()
+
     return render(request, 'trainer/dashboard_trainer.html', {
         'trainer': trainer,
-        'batches': my_batches
+        'dashboard_data': dashboard_data,
+        'total_batches': batches.count(),
+        'total_students': total_students,
+        'today': today
     })
 
 @login_required

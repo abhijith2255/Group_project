@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trainer Portal | EduPro{% endblock %}</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --trainer-primary: #0d6efd;
+            --sidebar-bg: #1e1e2d;
+            --sidebar-width: 260px;
+        }
+        
+        body { font-family: 'Inter', sans-serif; background-color: #f5f7fa; color: #3f4254; }
+
+        /* SIDEBAR STYLES */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0; left: 0;
+            background-color: var(--sidebar-bg);
+            color: #9899ac;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .brand-logo {
+            font-size: 1.25rem; font-weight: 700; color: white;
+            margin-bottom: 40px; display: flex; align-items: center; gap: 10px;
+        }
+
+        .nav-link {
+            color: #9899ac; padding: 12px 15px; border-radius: 8px;
+            margin-bottom: 5px; font-weight: 500; text-decoration: none;
+            display: flex; align-items: center; transition: all 0.2s ease;
+        }
+        .nav-link:hover { background-color: rgba(255,255,255,0.05); color: white; }
+        .nav-link.active { background-color: var(--trainer-primary); color: white; }
+        .nav-link i { width: 25px; font-size: 1.1rem; }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        /* PROFILE SECTION IN SIDEBAR */
+        .sidebar-profile {
+            margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="brand-logo">
+            <i class="fas fa-chalkboard-teacher text-primary"></i> 
+            <span>EduPro Trainer</span>
+        </div>
+
+        <small class="text-uppercase fw-bold mb-3" style="font-size: 0.7rem; letter-spacing: 1px;">Menu</small>
+
+        <a href="{% url 'trainer_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'trainer_dashboard' %}active{% endif %}">
+            <i class="fas fa-th-large"></i> Dashboard
+        </a>
+        
+        <a href="#" class="nav-link">
+            <i class="fas fa-book-reader"></i> Syllabus Tracker
+        </a>
+        
+        <a href="#" class="nav-link">
+            <i class="fas fa-file-signature"></i> Exams & Marks
+        </a>
+        
+        <a href="#" class="nav-link">
+            <i class="fas fa-calendar-check"></i> Attendance Logs
+        </a>
+        <a href="{% url 'trainer_apply_leave' %}" class="nav-link">
+             <i class="fas fa-calendar-minus me-2"></i> Apply Leave
+          </a>
+
+        <div class="sidebar-profile">
+            <div class="d-flex align-items-center mb-3">
+                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold me-2" style="width: 35px; height: 35px;">
+                    {{ request.user.first_name|slice:":1" }}
+                </div>
+                <div style="line-height: 1.2;">
+                    <div class="text-white fw-bold small">{{ request.user.first_name }}</div>
+                    <small style="font-size: 0.75rem;">Instructor</small>
+                </div>
+            </div>
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm w-100">
+                <i class="fas fa-sign-out-alt me-1"></i> Logout
+            </a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+                    {% if message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% elif message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                    {% endif %}
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -11,6 +11,8 @@ urlpatterns = [
     
     # BDM / CRM App (New)
     path('bdm/', include('BdmApp.urls')),
+    # Trainer App
+    path('trainer/', include('TrainerApp.urls')),
 ]
 
 if settings.DEBUG:

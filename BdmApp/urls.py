@@ -38,4 +38,6 @@ urlpatterns = [
     path('students/<int:student_id>/', views.student_detail, name='student_detail'),
     path('students/<int:student_id>/edit/', views.edit_student, name='edit_student'),
     path('feedbacks/', views.feedback_list, name='feedback_list'),
+    path('leaves/manage/', views.manage_trainer_leaves, name='manage_trainer_leaves'),
+    path('leaves/update/<int:leave_id>/<str:status>/', views.update_leave_status, name='update_trainer_leave'),
 ]

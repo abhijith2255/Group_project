@@ -11,6 +11,8 @@ import json
 import string # Added for robust password generation
 from dateutil.relativedelta import relativedelta # You might need to install this: pip install python-dateutil
 import datetime
+
+from TrainerApp.models import TrainerLeave
 # Make sure to import FeeInstallment at the top
 # --- IMPORT MODELS ---
 from .models import Lead, LeadSource, Interaction,FeeInstallment
@@ -816,3 +818,33 @@ def feedback_list(request):
     """List all student feedbacks"""
     feedbacks = StudentFeedback.objects.select_related('student__user').order_by('-date_submitted')
     return render(request, 'bdm/feedback_list.html', {'feedbacks': feedbacks})
+
+
+@login_required
+@user_passes_test(is_bdm)
+def manage_trainer_leaves(request):
+    """List all leave requests"""
+    # Separate lists for clearer UI
+    pending_leaves = TrainerLeave.objects.filter(status='Pending').order_by('start_date')
+    history_leaves = TrainerLeave.objects.exclude(status='Pending').order_by('-applied_on')[:10] # Show last 10
+    
+    return render(request, 'bdm/manage_leaves.html', {
+        'pending_leaves': pending_leaves,
+        'history_leaves': history_leaves
+    })
+
+@login_required
+@user_passes_test(is_bdm)
+def update_leave_status(request, leave_id, status):
+    """Approve or Reject a leave"""
+    leave = get_object_or_404(TrainerLeave, id=leave_id)
+    
+    if status in ['Approved', 'Rejected']:
+        leave.status = status
+        leave.save()
+        
+        # Optional: Add a success message
+        action = "Approved" if status == 'Approved' else "Rejected"
+        messages.success(request, f"Leave for {leave.trainer.full_name} has been {action}.")
+        
+    return redirect('manage_trainer_leaves')
