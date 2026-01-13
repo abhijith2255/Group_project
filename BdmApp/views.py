@@ -12,10 +12,11 @@ import string # Added for robust password generation
 from dateutil.relativedelta import relativedelta # You might need to install this: pip install python-dateutil
 import datetime
 
+from BdmApp.forms import EnquiryForm
 from TrainerApp.models import TrainerLeave
 # Make sure to import FeeInstallment at the top
 # --- IMPORT MODELS ---
-from .models import Lead, LeadSource, Interaction,FeeInstallment
+from .models import Lead, LeadSource, Interaction,FeeInstallment,Enquiry
 from StudentApp.models import Student, Course, FeePayment, Batch, StudentFeedback,Trainer
 
 # --- ACCESS CONTROL ---
@@ -848,3 +849,61 @@ def update_leave_status(request, leave_id, status):
         messages.success(request, f"Leave for {leave.trainer.full_name} has been {action}.")
         
     return redirect('manage_trainer_leaves')
+
+
+# BdmApp/views.py
+def public_enquiry(request):
+    if request.method == 'POST':
+        form = EnquiryForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Thank you! Your enquiry has been sent.")
+            return redirect('public_enquiry')
+    else:
+        form = EnquiryForm()
+
+    return render(request, 'enquiry.html', {'form': form})
+
+@login_required
+def convert_enquiry_to_lead(request, enquiry_id):
+    enquiry = get_object_or_404(Enquiry, id=enquiry_id)
+    
+    # Check duplicate
+    if Lead.objects.filter(email=enquiry.email).exists():
+        messages.warning(request, "Lead already exists!")
+        return redirect('enquiry_list')
+
+    # Get 'Website Enquiry' Source
+    website_source, _ = LeadSource.objects.get_or_create(name="Website Enquiry")
+
+    # Create Lead (1:1 Mapping)
+    Lead.objects.create(
+        first_name=enquiry.first_name,
+        last_name=enquiry.last_name,
+        email=enquiry.email,
+        phone=enquiry.phone,
+        city=enquiry.city,
+        age=enquiry.age,
+        gender=enquiry.gender,
+        qualification=enquiry.qualification,
+        course_interested=enquiry.course_interested,
+        source=website_source,
+        assigned_to=request.user, # Assigns to BDM doing the click
+        status='NEW'
+    )
+    
+    # Mark resolved
+    enquiry.is_resolved = True
+    enquiry.save()
+    
+    messages.success(request, f"Lead {enquiry.first_name} created successfully!")
+    return redirect('lead_list')
+
+@login_required
+@user_passes_test(is_bdm)
+def enquiry_list(request):
+    """Show list of new website enquiries that are not yet converted"""
+    # Filter for is_resolved=False so we only see new ones
+    enquiries = Enquiry.objects.filter(is_resolved=False).order_by('-created_at')
+    
+    return render(request, 'bdm/enquiry_list.html', {'enquiries': enquiries})

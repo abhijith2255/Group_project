@@ -517,7 +517,7 @@ def update_leave_status(request, leave_id, status):
 # PUBLIC / ENROLLMENT VIEWS
 # ==========================================
 
-def course_list(request):
+def course_listt(request):
     courses = Course.objects.all() 
     return render(request, 'course.html', {'courses': courses})
 

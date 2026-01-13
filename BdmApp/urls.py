@@ -32,7 +32,7 @@ urlpatterns = [
     # Trainers & Courses
     path('trainers/', views.trainer_list, name='trainer_list'),
     path('trainers/add/', views.add_trainer, name='add_trainer'),
-    path('courses/', views.course_list, name='course_list'),
+    path('courses/', views.course_list, name='bdm_course_list'),
     path('courses/add/', views.add_course, name='add_course'),
     path('courses/edit/<int:course_id>/', views.edit_course, name='edit_course'),
     path('students/<int:student_id>/', views.student_detail, name='student_detail'),
@@ -40,4 +40,8 @@ urlpatterns = [
     path('feedbacks/', views.feedback_list, name='feedback_list'),
     path('leaves/manage/', views.manage_trainer_leaves, name='manage_trainer_leaves'),
     path('leaves/update/<int:leave_id>/<str:status>/', views.update_leave_status, name='update_trainer_leave'),
+    path('contact-us/', views.public_enquiry, name='public_enquiry'),
+    path('enquiries/', views.enquiry_list, name='enquiry_list'),
+    path('enquiry/convert/<int:enquiry_id>/', views.convert_enquiry_to_lead, name='convert_enquiry_to_lead'),
+    
 ]

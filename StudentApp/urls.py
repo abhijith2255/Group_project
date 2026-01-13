@@ -22,7 +22,7 @@ urlpatterns = [
     path('apply-leave/', views.apply_leave, name='apply_leave'),
     path('attendance/manage/', views.admin_mark_attendance, name='admin_attendance'),
     path('attendance/my-stats/', views.student_my_attendance, name='my_attendance'),
-    path('courses/', views.course_list, name='course_list'),
+    path('courses/', views.course_listt, name='course_listt'),
     path('pay-fee/', views.pay_fee, name='pay_fee'),
     path('id-card/', views.view_id_card, name='view_id_card'),
     path('classroom/', views.my_classroom, name='my_classroom'),
@@ -33,4 +33,5 @@ urlpatterns = [
     path('placements/', views.placement_portal, name='placement_portal'),
     path('schedule/', views.my_schedule, name='my_schedule'),
     path('lesson-plan/', views.lesson_plan, name='lesson_plan'),
+    
 ]

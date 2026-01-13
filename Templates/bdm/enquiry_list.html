@@ -1,0 +1,69 @@
+{% extends 'bdm/base.html' %}
+
+{% block title %}Website Enquiries | EduPro{% endblock %}
+{% block page_title %}New Enquiries{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm rounded-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="fw-bold text-dark mb-0">Inbox</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3">Date</th>
+                        <th>Name</th>
+                        <th>Phone / Email</th>
+                        <th>City / Qual.</th>
+                        <th>Interest</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in enquiries %}
+                    <tr>
+                        <td class="ps-4 text-muted small">{{ item.created_at|date:"M d" }}</td>
+                        
+                        <td class="fw-bold text-dark">
+                            {{ item.first_name }} {{ item.last_name }}
+                        </td>
+                        
+                        <td>
+                            <div class="small fw-bold">{{ item.phone }}</div>
+                            <div class="small text-muted">{{ item.email }}</div>
+                        </td>
+                        
+                        <td>
+                            <div class="small">{{ item.city }}</div>
+                            <div class="small text-muted">{{ item.qualification }}</div>
+                        </td>
+
+                        <td>
+                            {% if item.course_interested %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary">{{ item.course_interested.name }}</span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        
+                        <td class="text-end pe-4">
+                            <a href="{% url 'convert_enquiry_to_lead' item.id %}" class="btn btn-success btn-sm rounded-pill px-3 fw-bold" title="Convert to Lead">
+                                <i class="fas fa-user-plus me-1"></i> Add to Leads
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            No new enquiries found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

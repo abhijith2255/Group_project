@@ -1,199 +1,267 @@
 {% extends 'bdm/base.html' %}
+{% load static %}
 
 {% block title %}Admissions & Fees | EduPro{% endblock %}
 
 {% block extra_css %}
 <style>
-    /* Card & Table Container */
+    /* Professional Card Styling */
     .table-card {
-        background: white; border-radius: 16px; border: none;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.04); overflow: hidden;
+        background: #ffffff;
+        border: 1px solid rgba(226, 232, 240, 0.6);
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        overflow: hidden;
     }
-    
-    /* Table Headers */
+
+    /* Typography Defaults */
+    body { font-family: 'Inter', 'Segoe UI', sans-serif; color: #1e293b; }
+
+    /* Table Improvements */
     .table thead th {
-        background: #f8f9fa; font-size: 0.75rem; text-transform: uppercase;
-        letter-spacing: 0.5px; color: #8898aa; font-weight: 700;
-        border-bottom: 1px solid #e9ecef; padding: 15px 20px;
+        background-color: #f8fafc;
+        color: #64748b;
+        font-weight: 600;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 1rem 1.5rem;
+    }
+
+    .table tbody td {
+        padding: 1.25rem 1.5rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.875rem;
     }
     
-    /* Table Cells */
-    .table tbody td {
-        padding: 15px 20px; vertical-align: middle;
-        border-bottom: 1px solid #f0f2f5; color: #344767; font-size: 0.9rem;
-    }
+    .table tbody tr:last-child td { border-bottom: none; }
+    .table tbody tr:hover { background-color: #f8fafc; }
 
-    /* Student Avatar (Initials) */
+    /* Avatar Styling */
     .avatar-initial {
-        width: 42px; height: 42px; border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white; display: flex; align-items: center; justify-content: center;
-        font-weight: 700; font-size: 1rem; margin-right: 15px;
-        box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #eff6ff;
+        color: #3b82f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-right: 1rem;
+        border: 1px solid #dbeafe;
     }
 
-    /* Status Badges */
-    .badge-paid { background: #dcfce7; color: #15803d; padding: 6px 12px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; }
-    .badge-pending { background: #ffedd5; color: #c2410c; padding: 6px 12px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; }
+    /* Course Badge */
+    .badge-course {
+        background-color: #f1f5f9;
+        color: #475569;
+        padding: 0.35em 0.8em;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 0.75rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    /* Status Indicators */
+    .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .status-paid { background-color: #22c55e; box-shadow: 0 0 0 4px #dcfce7; }
+    .status-pending { background-color: #f59e0b; box-shadow: 0 0 0 4px #fef3c7; }
 
     /* Progress Bar */
-    .fee-progress { height: 6px; background-color: #f1f5f9; border-radius: 10px; overflow: hidden; margin-top: 8px; width: 120px; }
-    .fee-progress-bar { background: linear-gradient(90deg, #f59e0b, #ea580c); }
+    .fee-progress-container { width: 100%; max-width: 140px; }
+    .fee-progress { height: 6px; background-color: #e2e8f0; border-radius: 99px; overflow: hidden; margin-top: 6px; }
+    .fee-progress-bar { background-color: #3b82f6; border-radius: 99px; }
+    .fee-text { font-size: 0.75rem; color: #64748b; font-weight: 500; display: flex; justify-content: space-between; margin-bottom: 2px; }
+
+    /* Action Buttons */
+    .btn-action {
+        padding: 0.4rem 1rem;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        border-radius: 6px;
+        transition: all 0.2s;
+    }
+    .btn-pay { background-color: #eff6ff; color: #2563eb; border: 1px solid transparent; }
+    .btn-pay:hover { background-color: #2563eb; color: white; }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-4 px-2">
-    <div>
+<div class="row align-items-center mb-4 g-3">
+    <div class="col-md-6">
         <h4 class="fw-bold mb-1 text-dark">Admissions & Fees</h4>
-        <p class="text-muted small mb-0">Track enrollment, fee payments, and balances.</p>
+        <p class="text-muted small mb-0">Manage student enrollment, track payments, and clear dues.</p>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <div class="d-inline-flex gap-2">
+            <span class="badge bg-white text-secondary border px-3 py-2 fw-medium rounded-pill shadow-sm">
+                <i class="fas fa-users me-1 text-primary"></i> Total: {{ students|length }}
+            </span>
+        </div>
     </div>
 </div>
 
 <div class="table-card">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table mb-0">
             <thead>
                 <tr>
-                    <th class="ps-4">Student Name</th>
-                    <th>Course Enrolled</th>
-                    <th>Fee Status</th>
-                    <th>Balance</th>
-                    <th class="text-center">Action</th>
+                    <th class="ps-4" style="width: 30%;">Student Profile</th>
+                    <th style="width: 20%;">Course Detail</th>
+                    <th style="width: 25%;">Payment Status</th>
+                    <th style="width: 15%;">Outstanding</th>
+                    <th class="text-end pe-4" style="width: 10%;">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in students %}
                 <tr>
-                    <td class="ps-4">
-                        <div class="d-flex align-items-center">
-                            <div class="avatar-initial">
-                                {{ item.obj.user.first_name|slice:":1" }}
+<td class="ps-4">
+    <div class="d-flex align-items-center">
+        <a href="{% url 'student_detail' item.obj.id %}" class="me-2">
+            {# --- CORRECTED CHECK: Uses 'profile_image' --- #}
+            {% if item.obj.profile_image %}
+                <img src="{{ item.obj.profile_image.url }}" 
+                     alt="Profile" 
+                     class="rounded-circle" 
+                     style="width: 40px; height: 40px; object-fit: cover;">
+            {% else %}
+                {# --- Fallback to Initials --- #}
+                <div class="avatar-initial">
+                    {{ item.obj.user.first_name|slice:":1" }}{{ item.obj.user.last_name|slice:":1" }}
+                </div>
+            {% endif %}
+        </a>
+
+        <div>
+            <a href="{% url 'student_detail' item.obj.id %}" class="text-dark fw-bold text-decoration-none d-block mb-1" style="line-height: 1;">
+                {{ item.obj.user.first_name }} {{ item.obj.user.last_name }}
+            </a>
+            <span class="text-xs text-muted">
+                ID: <span class="font-monospace text-dark">{{ item.obj.student_id }}</span>
+            </span>
+        </div>
+    </div>
+</td>
+
+                    <td>
+                        <div class="d-flex flex-column align-items-start gap-1">
+                            <span class="badge-course">{{ item.obj.course.name }}</span>
+                            <small class="text-muted" style="font-size: 0.75rem;">
+                                <i class="fas fa-phone-alt me-1 text-xs"></i> {{ item.obj.phone }}
+                            </small>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="fee-progress-container">
+                            <div class="fee-text">
+                                <span>{% if item.balance <= 0 %}Paid{% else %}Pending{% endif %}</span>
+                                <span>{{ item.paid_amount|floatformat:0 }} / {{ item.total_fee|floatformat:0 }}</span>
                             </div>
-                            <div>
-                                <a href="{% url 'student_detail' item.obj.id %}" class="fw-bold text-dark text-decoration-none">
-                                   <div class="fw-bold text-dark">{{ item.obj.user.first_name }} {{ item.obj.user.last_name }}</div>
-                                </a>
-                                <div class="small text-muted">ID: <span class="text-primary fw-bold">{{ item.obj.student_id }}</span></div>
+                            <div class="fee-progress">
+                                <div class="fee-progress-bar {% if item.balance <= 0 %}bg-success{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {% widthratio item.paid_amount item.total_fee 100 %}%">
+                                </div>
                             </div>
                         </div>
                     </td>
 
                     <td>
-                        <div class="fw-bold text-dark">{{ item.obj.course.name }}</div>
-                        <div class="small text-muted">{{ item.obj.phone }}</div>
-                    </td>
-
-                    <td>
-                        {% if item.balance <= 0 %}
-                            <span class="badge-paid"><i class="fas fa-check-circle me-1"></i> Paid</span>
-                        {% else %}
-                            <div class="d-flex align-items-center justify-content-between" style="width: 120px;">
-                                <span class="text-xs fw-bold text-warning">Pending</span>
-                                <span class="text-xs text-muted">{{ item.paid_amount|floatformat:0 }} / {{ item.total_fee|floatformat:0 }}</span>
+                        {% if item.balance > 0 %}
+                            <div class="d-flex align-items-center text-danger fw-bold">
+                                <span class="status-dot status-pending"></span>
+                                ₹{{ item.balance|floatformat:0 }}
                             </div>
-                            <div class="fee-progress">
-                                <div class="progress-bar fee-progress-bar" role="progressbar" 
-                                     style="width: {% widthratio item.paid_amount item.total_fee 100 %}%">
-                                </div>
+                        {% else %}
+                            <div class="d-flex align-items-center text-success fw-bold">
+                                <span class="status-dot status-paid"></span>
+                                Cleared
                             </div>
                         {% endif %}
                     </td>
 
-                    <td>
+                    <td class="text-end pe-4">
                         {% if item.balance > 0 %}
-                            <h6 class="fw-bold text-danger mb-0">₹{{ item.balance|floatformat:0 }}</h6>
-                        {% else %}
-                            <h6 class="fw-bold text-success mb-0">₹0</h6>
-                        {% endif %}
-                    </td>
-
-                    <td class="text-center">
-                        {% if item.balance > 0 %}
-                            <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm fw-bold" 
-                                    data-bs-toggle="modal" data-bs-target="#payModal{{ item.obj.id }}">
-                                <i class="fas fa-rupee-sign me-1"></i> Pay
+                            <button class="btn btn-pay btn-action" data-bs-toggle="modal" data-bs-target="#payModal{{ item.obj.id }}">
+                                Pay Now
                             </button>
                         {% else %}
-                            <button class="btn btn-light btn-sm rounded-pill px-3 text-muted" disabled>
-                                <i class="fas fa-check"></i> Done
+                            <button class="btn btn-light btn-sm text-muted border px-3 py-1" disabled style="opacity: 0.7; font-size: 0.75rem;">
+                                <i class="fas fa-check-double me-1"></i> Paid
                             </button>
                         {% endif %}
                     </td>
                 </tr>
 
-                <div class="modal fade" id="payModal{{ item.obj.id }}" tabindex="-1">
+                <div class="modal fade" id="payModal{{ item.obj.id }}" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content border-0 shadow-lg rounded-4">
-                            <div class="modal-header border-bottom-0 pb-0">
-                                <h5 class="modal-title fw-bold">Record Payment</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <div class="modal-content border-0 shadow-xl rounded-4">
+                            <div class="modal-header border-bottom-0 pb-0 ps-4 pt-4">
+                                <div>
+                                    <h5 class="modal-title fw-bold text-dark">Record Transaction</h5>
+                                    <p class="text-muted small mb-0">For Student: {{ item.obj.user.first_name }} {{ item.obj.user.last_name }}</p>
+                                </div>
+                                <button type="button" class="btn-close me-2 mt-n2" data-bs-dismiss="modal"></button>
                             </div>
                             
-                            <div class="modal-body px-4 pt-2">
-                                <p class="text-muted small mb-4">Adding payment for <strong>{{ item.obj.user.first_name }}</strong></p>
-                                
+                            <div class="modal-body p-4">
                                 <form method="POST" action="{% url 'record_payment' item.obj.id %}">
                                     {% csrf_token %}
                                     
-                                    <div class="bg-light p-3 rounded-3 mb-4 border border-dashed">
-                                        <div class="d-flex justify-content-between mb-2">
-                                            <span class="text-secondary small">Total Course Fee</span>
+                                    <div class="bg-light rounded-3 p-3 mb-4 border border-dashed d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <span class="d-block text-xs text-uppercase text-muted fw-bold ls-1">Balance Due</span>
+                                            <span class="h4 fw-bold text-danger mb-0">₹{{ item.balance|floatformat:0 }}</span>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="d-block text-xs text-muted">Total Fee</span>
                                             <span class="fw-bold text-dark">₹{{ item.total_fee|floatformat:0 }}</span>
                                         </div>
-                                        <div class="d-flex justify-content-between text-danger">
-                                            <span class="small fw-bold">Remaining Balance</span>
-                                            <span class="fw-bold">₹{{ item.balance|floatformat:0 }}</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold text-secondary">Amount Paying Now</label>
-                                        <div class="input-group input-group-lg">
-                                            <span class="input-group-text bg-white border-end-0 text-muted">₹</span>
-                                            <input type="number" name="amount" class="form-control border-start-0 ps-0 fw-bold" 
-                                                   max="{{ item.balance }}" placeholder="Enter amount" required>
-                                        </div>
-                                        <div class="form-text text-muted small">Enter the down payment amount here.</div>
                                     </div>
 
                                     <div class="mb-4">
-                                        <label class="form-label small fw-bold text-secondary">Payment Method</label>
-                                        <select name="mode" class="form-select form-select-lg" 
-                                                id="modeSelector{{ item.obj.id }}" onchange="toggleEmiInput('{{ item.obj.id }}')">
-                                            <option value="UPI">UPI / GPay / PhonePe</option>
-                                            <option value="CASH">Cash</option>
-                                            <option value="BANK">Bank Transfer</option>
-                                            <option value="CHEQUE">Cheque</option>
-                                            <option value="EMI" class="fw-bold text-primary">EMI (Monthly Installments)</option>
+                                        <label class="form-label small fw-bold text-secondary text-uppercase ls-1">Amount</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white border-end-0 text-muted ps-3">₹</span>
+                                            <input type="number" name="amount" class="form-control border-start-0 ps-1 fw-bold text-dark" 
+                                                   max="{{ item.balance }}" placeholder="0.00" required style="font-size: 1.1rem;">
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label small fw-bold text-secondary text-uppercase ls-1">Payment Method</label>
+                                        <select name="mode" class="form-select" id="modeSelector{{ item.obj.id }}" onchange="toggleEmiInput('{{ item.obj.id }}')">
+                                            <option value="UPI">UPI / Digital Wallet</option>
+                                            <option value="CASH">Cash Payment</option>
+                                            <option value="BANK">Bank Transfer (NEFT/IMPS)</option>
+                                            <option value="CHEQUE">Cheque / DD</option>
+                                            <option value="EMI" class="fw-bold text-primary">Create EMI Schedule</option>
                                         </select>
                                     </div>
 
-                                    <div class="mb-4 p-3 bg-white border rounded shadow-sm" id="emiBox{{ item.obj.id }}" style="display: none;">
-                                        <div class="d-flex align-items-center mb-2 text-primary">
-                                            <i class="fas fa-calendar-alt me-2"></i>
-                                            <span class="fw-bold small">Convert Balance to EMI</span>
+                                    <div id="emiBox{{ item.obj.id }}" class="bg-primary bg-opacity-10 rounded-3 p-3 mb-4 border border-primary border-opacity-25" style="display: none;">
+                                        <div class="d-flex gap-2 align-items-center text-primary mb-2">
+                                            <i class="fas fa-calculator"></i>
+                                            <span class="fw-bold small">Installment Plan</span>
                                         </div>
-                                        
-                                        <div class="alert alert-light border-0 p-2 mb-2 d-flex justify-content-between align-items-center">
-                                            <small class="text-muted">Course Duration:</small>
-                                            <span class="badge bg-primary">{{ item.obj.course.duration }}</span>
-                                        </div>
-
-                                        <label class="small fw-bold text-secondary mb-1">Enter EMI Months</label>
-                                        <div class="input-group">
-                                            <input type="number" name="installments" class="form-control fw-bold text-center" 
-                                                   placeholder="e.g. 6" min="1" max="24">
-                                            <span class="input-group-text bg-light text-muted small">Months</span>
-                                        </div>
-                                        <div class="form-text text-muted small mt-1">
-                                            System will generate due dates for the next X months.
+                                        <label class="small text-muted mb-1">Number of Months</label>
+                                        <input type="number" name="installments" class="form-control" placeholder="e.g. 3" min="1" max="12">
+                                        <div class="form-text text-xs mt-1">
+                                            Remaining balance will be split equally starting next month.
                                         </div>
                                     </div>
 
-                                    <div class="d-grid mb-3">
-                                        <button type="submit" class="btn btn-primary btn-lg fw-bold rounded-pill">Confirm Payment</button>
+                                    <div class="d-grid">
+                                        <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm">
+                                            Confirm Payment <i class="fas fa-arrow-right ms-2 small"></i>
+                                        </button>
                                     </div>
                                 </form>
                             </div>
@@ -203,9 +271,13 @@
                 {% empty %}
                 <tr>
                     <td colspan="5" class="text-center py-5">
-                        <div class="text-muted mb-2"><i class="fas fa-inbox fa-3x opacity-25"></i></div>
-                        <p class="text-muted fw-bold">No students found.</p>
-                        <p class="small text-muted">Convert leads to students to see them listed here.</p>
+                        <div class="mb-3">
+                            <div class="bg-light rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                                <i class="fas fa-user-slash text-secondary fa-lg opacity-50"></i>
+                            </div>
+                        </div>
+                        <h6 class="fw-bold text-dark">No students found</h6>
+                        <p class="text-muted small mb-0">Once you convert leads to admissions, they will appear here.</p>
                     </td>
                 </tr>
                 {% endfor %}
@@ -218,7 +290,6 @@
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
     function toggleEmiInput(studentId) {
         var mode = document.getElementById('modeSelector' + studentId).value;
@@ -226,6 +297,8 @@
         
         if (mode === 'EMI') {
             emiBox.style.display = 'block';
+            // Optional: Auto-focus the input
+            emiBox.querySelector('input').focus();
         } else {
             emiBox.style.display = 'none';
         }
