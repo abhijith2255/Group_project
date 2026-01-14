@@ -1,0 +1,163 @@
+{% extends 'bdm/base.html' %}
+
+{% block title %}Register Student | EduPro{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0 py-2"><i class="fas fa-user-graduate me-2"></i>Student Registration (Conversion)</h4>
+                </div>
+                <div class="card-body p-4">
+                    
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <h5 class="text-primary mb-3 border-bottom pb-2">1. Account Details</h5>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">First Name</label>
+                                <input type="text" class="form-control bg-light" value="{{ lead.first_name }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Last Name</label>
+                                <input type="text" class="form-control bg-light" value="{{ lead.last_name }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Email (Username)</label>
+                                <input type="email" class="form-control bg-light" value="{{ lead.email }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Set Login Password <span class="text-danger">*</span></label>
+                                <input type="password" name="password" class="form-control" required placeholder="Create a strong password">
+                            </div>
+                        </div>
+
+                        <h5 class="text-primary mt-4 mb-3 border-bottom pb-2">2. Student Profile</h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Phone Number</label>
+                                <input type="text" class="form-control bg-light" value="{{ lead.phone }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Selected Course</label>
+                                <input type="text" class="form-control bg-light" value="{{ lead.course_interested.name }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-bold">Assign Batch <span class="text-danger">*</span></label>
+                                <select name="batch" class="form-select">
+                                    <option value="">-- Select a Batch --</option>
+                                    {% for batch in batches %}
+                                        <option value="{{ batch.id }}">{{ batch.name }} (Start: {{ batch.start_date|date:"d M" }} | {{ batch.time_slot }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Date of Birth</label>
+                                <input type="date" name="dob" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Gender</label>
+                                <select name="gender" class="form-select">
+                                    <option value="M">Male</option>
+                                    <option value="F">Female</option>
+                                    <option value="O">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Address</label>
+                            <textarea name="address" class="form-control" rows="2" placeholder="Full residential address">{{ lead.city }}</textarea>
+                        </div>
+
+                        <h5 class="text-primary mt-4 mb-3 border-bottom pb-2">3. Payment & Installments</h5>
+                        
+                        <div class="card bg-light border-0 p-3">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Amount Paying Now (₹)</label>
+                                    <input type="number" name="amount" class="form-control" placeholder="e.g. 5000" step="0.01">
+                                </div>
+                                
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Payment Mode</label>
+                                    <select name="mode" class="form-select" id="paymentMode" onchange="toggleEmiField()">
+                                        <option value="CASH">Cash</option>
+                                        <option value="UPI">UPI / GPay</option>
+                                        <option value="FULL">Full Payment (Bank)</option>
+                                        <option value="EMI">EMI / Installment</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-4 mb-3" id="emiField" style="display:none;">
+                                    <label class="form-label fw-bold text-danger">No. of Months (Split)</label>
+                                    <input type="number" name="installments" class="form-control border-danger" placeholder="e.g. 3" min="1" max="12" value="3">
+                                    <small class="text-muted" style="font-size: 0.75rem;">Balance will be split over these months.</small>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info py-2 mt-2 mb-0" style="font-size: 0.85rem;">
+                                <i class="fas fa-info-circle me-1"></i> 
+                                If <strong>EMI</strong> is selected, the system will automatically create future payment schedules based on the number of months entered.
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg shadow-sm">
+                                <i class="fas fa-check-circle me-2"></i> Confirm Registration & Payment
+                            </button>
+                            <a href="{% url 'bdm_dashboard' %}" class="btn btn-outline-secondary text-center">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleEmiField() {
+        var mode = document.getElementById("paymentMode").value;
+        var emiDiv = document.getElementById("emiField");
+        
+        if (mode === "EMI") {
+            emiDiv.style.display = "block";
+            // Optional: Add a subtle animation
+            emiDiv.style.opacity = 0;
+            setTimeout(function(){ emiDiv.style.opacity = 1; }, 100);
+        } else {
+            emiDiv.style.display = "none";
+        }
+    }
+    
+    // Run on page load in case of browser refresh keeping 'EMI' selected
+    document.addEventListener("DOMContentLoaded", function() {
+        toggleEmiField();
+    });
+</script>
+
+{% endblock %}

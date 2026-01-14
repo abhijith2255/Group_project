@@ -9,7 +9,7 @@
         background: white;
         border-radius: 12px;
         padding: 15px 20px;
-        box-shadow: var(--card-shadow);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         margin-bottom: 25px;
         display: flex;
         gap: 15px;
@@ -23,13 +23,14 @@
         padding: 8px 15px;
         outline: none;
         color: #4a5568;
+        background-color: #fff;
     }
     
     /* Table Design */
     .table-card {
         background: white;
         border-radius: 16px;
-        box-shadow: var(--card-shadow);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         overflow: hidden;
         border: 1px solid rgba(0,0,0,0.02);
     }
@@ -65,17 +66,18 @@
         font-weight: 600;
         display: inline-block;
     }
-    .bg-new { background: #e0f2fe; color: #0284c7; }
-    .bg-contacted { background: #fff7ed; color: #ea580c; }
-    .bg-interested { background: #f0fdf4; color: #16a34a; }
-    .bg-lost { background: #fef2f2; color: #dc2626; }
+    .bg-new { background: #e0f2fe; color: #0284c7; }        /* Blue */
+    .bg-contacted { background: #fff7ed; color: #ea580c; }  /* Orange */
+    .bg-interested { background: #fff1f2; color: #e11d48; } /* Pink/Red */
+    .bg-converted { background: #f0fdf4; color: #16a34a; }  /* Green */
+    .bg-lost { background: #f3f4f6; color: #6b7280; }      /* Grey */
 
     /* Buttons */
     .btn-action {
         width: 32px; height: 32px; border-radius: 8px;
         display: inline-flex; align-items: center; justify-content: center;
         border: none; transition: 0.2s; cursor: pointer;
-        text-decoration: none; /* Ensure no underline */
+        text-decoration: none;
         margin-right: 5px;
     }
     .btn-view { background: #f0f4ff; color: #5e72e4; }
@@ -85,7 +87,7 @@
     .btn-convert:hover { background: #16a34a; color: white; }
 
     .btn-add {
-        background: var(--primary-gradient);
+        background: linear-gradient(87deg, #5e72e4 0, #825ee4 100%);
         color: white; border: none;
         padding: 10px 20px; border-radius: 10px;
         font-weight: 500; text-decoration: none;
@@ -93,6 +95,16 @@
         display: inline-block;
     }
     .btn-add:hover { transform: translateY(-2px); box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1); color: white; }
+    
+    .btn-filter {
+        background: #5e72e4; 
+        color: white;
+        border:none; 
+        padding: 8px 20px; 
+        border-radius: 8px;
+        transition: 0.2s;
+    }
+    .btn-filter:hover { background: #324cdd; }
 </style>
 {% endblock %}
 
@@ -107,24 +119,35 @@
         </a>
     </div>
 
-    <div class="filter-card">
-        <div class="position-relative">
-            <i class="fas fa-search position-absolute text-muted" style="left: 15px; top: 12px;"></i>
-            <input type="text" class="search-input ps-5" placeholder="Search by name..." style="width: 300px;">
+    <form method="GET" action="" class="w-100">
+        <div class="filter-card">
+            
+            <div class="position-relative">
+                <i class="fas fa-search position-absolute text-muted" style="left: 15px; top: 12px;"></i>
+                <input type="text" name="search" class="search-input ps-5" 
+                       placeholder="Search by name or phone..." 
+                       style="width: 300px;" 
+                       value="{{ request.GET.search }}">
+            </div>
+            
+            <select name="status" class="search-input" style="width: 180px;">
+                <option value="">All Statuses</option>
+                <option value="NEW" {% if request.GET.status == 'NEW' %}selected{% endif %}>New Lead</option>
+                <option value="CONTACTED" {% if request.GET.status == 'CONTACTED' %}selected{% endif %}>Contacted</option>
+                <option value="INTERESTED" {% if request.GET.status == 'INTERESTED' %}selected{% endif %}>Interested</option>
+                <option value="CONVERTED" {% if request.GET.status == 'CONVERTED' %}selected{% endif %}>Converted</option>
+            </select>
+            
+            <select name="course" class="search-input" style="width: 180px;">
+                <option value="">All Courses</option>
+                <option value="Python" {% if request.GET.course == 'Python' %}selected{% endif %}>Python Stack</option>
+                <option value="DataScience" {% if request.GET.course == 'DataScience' %}selected{% endif %}>Data Science</option>
+            </select>
+            
+            <button type="submit" class="btn-filter">Filter</button>
+            <a href="." class="btn btn-light text-muted border ms-2">Clear</a>
         </div>
-        <select class="search-input" style="width: 180px;">
-            <option value="">All Statuses</option>
-            <option value="NEW">New Lead</option>
-            <option value="CONTACTED">Contacted</option>
-            <option value="CONVERTED">Converted</option>
-        </select>
-        <select class="search-input" style="width: 180px;">
-            <option value="">All Courses</option>
-            <option value="Python">Python Stack</option>
-            <option value="DataScience">Data Science</option>
-        </select>
-        <button class="btn btn-primary" style="background: #5e72e4; border:none; padding: 8px 20px; border-radius: 8px;">Filter</button>
-    </div>
+    </form>
 
     <div class="table-card">
         <div class="table-responsive">
@@ -149,24 +172,45 @@
                                      style="width:35px; height:35px; display:flex; align-items:center; justify-content:center;">
                                     {{ lead.first_name|slice:":1" }}
                                 </div>
-                                <span class="fw-bold">{{ lead.first_name }} {{ lead.last_name }}</span>
+                                
+                                {% if lead.status != 'CONVERTED' %}
+                                    <a href="{% url 'convert_lead' lead.id %}" class="text-dark fw-bold text-decoration-none">
+                                        {{ lead.first_name }} {{ lead.last_name }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted fw-bold">{{ lead.first_name }} {{ lead.last_name }}</span>
+                                {% endif %}
                             </div>
                         </td>
                         <td>
                             <div class="d-flex flex-column">
-                                <span class="small">{{ lead.phone }}</span>
+                                <span class="small fw-bold">{{ lead.phone }}</span>
                                 <span class="small text-muted">{{ lead.email }}</span>
                             </div>
                         </td>
-                        <td>{{ lead.course_interested.name }}</td>
-                        <td>{{ lead.source.name }}</td>
+                        <td>
+                            {% if lead.course_interested %}
+                                {{ lead.course_interested.name }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if lead.source %}
+                                {{ lead.source.name }}
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
                         <td>
                             {% if lead.status == 'NEW' %}
                                 <span class="badge-status bg-new">New</span>
                             {% elif lead.status == 'CONTACTED' %}
                                 <span class="badge-status bg-contacted">Contacted</span>
+                            {% elif lead.status == 'INTERESTED' %}
+                                <span class="badge-status bg-interested">Interested</span>
                             {% elif lead.status == 'CONVERTED' %}
-                                <span class="badge-status bg-interested">Converted</span>
+                                <span class="badge-status bg-converted">Converted</span>
                             {% else %}
                                 <span class="badge-status bg-lost">{{ lead.get_status_display }}</span>
                             {% endif %}
@@ -179,7 +223,7 @@
                                 </a>
 
                                 {% if lead.status != 'CONVERTED' %}
-                                <a href="{% url 'convert_lead' lead.id %}" class="btn-action btn-convert" title="Convert to Student">
+                                <a href="{% url 'convert_lead' lead.id %}" class="btn-action btn-convert" title="Register Student">
                                     <i class="fas fa-user-plus"></i>
                                 </a>
                                 {% endif %}

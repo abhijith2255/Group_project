@@ -8,7 +8,9 @@ from django.utils import timezone
 import string
 import random
 from decimal import Decimal
-from django.db.models import Q, Sum  # Standardized imports
+from django.db.models import Q, Sum
+
+from BdmApp.models import FeeInstallment  # Standardized imports
 
 from .models import (
     BatchProgress, BookIssue, ClassSchedule, LeaveApplication, PendingAdmission, PlacementDrive, Student, Attendance, 
@@ -262,59 +264,93 @@ def pay_fee(request):
     try:
         student = request.user.student
     except AttributeError:
+        # Redirect if user is not a student (e.g., admin)
         return redirect('dashboard')
 
-    # 1. Get Course Price
-    # Since you removed 'total_fee_committed', we use the Course price directly.
-    if student.course:
-        course_price = student.course.price
-    else:
-        messages.error(request, "You are not enrolled in any course.")
-        return redirect('dashboard')
-
-    # 2. Calculate Total Paid
-    # We sum up all amounts from the 'FeePayment' table
+    # 1. Calculate Balance
+    course_price = student.course.price
+    # Sum of all previous payments
     total_paid = FeePayment.objects.filter(student=student).aggregate(Sum('amount'))['amount__sum'] or Decimal('0.00')
-    
     balance_remaining = course_price - total_paid
+
+    # 2. Get EMI Details
+    # Get the oldest unpaid EMI to show as "Next Installment"
+    next_emi = FeeInstallment.objects.filter(student=student, is_paid=False).order_by('due_date').first()
+    pending_count = FeeInstallment.objects.filter(student=student, is_paid=False).count()
+
+    # --- LOGIC FIX: Ensure EMI amount never exceeds actual Balance ---
+    # This fixes the issue where EMI shows ₹18,000 but Balance is only ₹16,000
+    if next_emi:
+        if next_emi.amount > balance_remaining:
+            next_emi.amount = balance_remaining
 
     # 3. Handle Payment Submission
     if request.method == 'POST':
         try:
-            amount = Decimal(request.POST.get('amount'))
-            mode = request.POST.get('payment_mode') # Maps to 'mode' in your model
-            
-            # Basic Validation
-            if amount <= 0:
-                 messages.error(request, "Amount must be greater than 0.")
-            elif amount > balance_remaining:
-                 messages.error(request, f"You cannot pay more than the remaining balance (₹{balance_remaining}).")
-            else:
-                # 4. Create the Record (Using your FeePayment model fields)
-                FeePayment.objects.create(
-                    student=student,
-                    amount=amount,
-                    mode=mode  # Your model calls this field 'mode'
-                )
+            payment_type = request.POST.get('payment_option')
+            mode = request.POST.get('payment_mode') 
 
-                # 5. Check if fully paid and update Student model
-                # We calculate the NEW total to see if they are done.
+            # Determine Amount based on user choice
+            if payment_type == 'next_emi' and next_emi:
+                amount = next_emi.amount
+            elif payment_type == 'full_balance':
+                amount = balance_remaining
+            else:
+                # Custom amount input
+                amount = Decimal(request.POST.get('custom_amount'))
+
+            # Validation
+            if amount <= 0:
+                 messages.error(request, "Invalid amount.")
+            elif amount > balance_remaining:
+                 messages.error(request, f"Cannot pay more than balance (₹{balance_remaining}).")
+            else:
+                # --- A. Record the Payment ---
+                FeePayment.objects.create(student=student, amount=amount, mode=mode)
+
+                # --- B. Update EMI Status (Partial Payment Logic) ---
+                # We loop through unpaid EMIs and "fill them up" with the paid amount
+                pending_emis = FeeInstallment.objects.filter(student=student, is_paid=False).order_by('due_date')
+                
+                money_to_allocate = amount
+                
+                for emi in pending_emis:
+                    if money_to_allocate <= 0:
+                        break
+                    
+                    if money_to_allocate >= emi.amount:
+                        # Payment covers this full EMI
+                        money_to_allocate -= emi.amount
+                        emi.is_paid = True
+                        emi.save()
+                    else:
+                        # Payment is partial (e.g., Pay 2k for 18k EMI)
+                        # Reduce the EMI amount so next time it shows less
+                        emi.amount = emi.amount - money_to_allocate
+                        emi.save()
+                        money_to_allocate = 0 # All money used
+
+                # --- C. Check Full Course Completion ---
                 new_total_paid = total_paid + amount
-                if course_price - new_total_paid <= 0:
+                # Use a small buffer (1.00) for decimal comparison safety
+                if new_total_paid >= (course_price - Decimal('1.00')):
                     student.is_fee_paid = True
                     student.save()
+                    # Mark all remaining installments as paid/cleared
+                    FeeInstallment.objects.filter(student=student).update(is_paid=True)
 
-                messages.success(request, "Payment successful!")
+                messages.success(request, f"Payment of ₹{amount} successful!")
                 return redirect('dashboard')
 
-        except ValueError:
+        except (ValueError, TypeError):
             messages.error(request, "Invalid amount entered.")
 
+    # Render Template
     return render(request, 'student/pay_fee.html', {
         'student': student,
-        'course_price': course_price,
-        'total_paid': total_paid,
-        'balance_remaining': balance_remaining
+        'balance_remaining': balance_remaining,
+        'next_emi': next_emi,
+        'pending_count': pending_count
     })
 
 @login_required

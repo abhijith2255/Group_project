@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Enquiry</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #f8f9fa; /* Light grey background */
+            font-family: 'Poppins', sans-serif;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+        }
+        .card-header {
+            background: linear-gradient(45deg, #0d6efd, #0a58ca); /* Blue Gradient */
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 20px;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border: none;
+            padding: 12px;
+            font-weight: 500;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+        }
+        /* Style for the Back Home link */
+        .back-link {
+            text-decoration: none;
+            color: #6c757d;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .back-link:hover {
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mt-5 mb-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                
+                <div class="card shadow-lg">
+                    <div class="card-header text-center">
+                        <h3 class="mb-0">Course Enquiry</h3>
+                        <small>Fill out the form below and we will contact you!</small>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+
+                        <form method="POST" action="">
+                            {% csrf_token %}
+
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="first_name" class="form-label fw-bold">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="first_name" placeholder="John" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="last_name" class="form-label fw-bold">Last Name</label>
+                                    <input type="text" class="form-control" name="last_name" placeholder="Doe">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="phone" class="form-label fw-bold">Phone Number <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" name="phone" placeholder="9876543210" pattern="[0-9]{10}" title="Please enter a valid 10-digit number" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label fw-bold">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" name="email" placeholder="john@example.com" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="city" class="form-label fw-bold">City / Location</label>
+                                <input type="text" class="form-control" name="city" placeholder="e.g. Mumbai">
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="course" class="form-label fw-bold">Interested Course <span class="text-danger">*</span></label>
+                                <select name="course" class="form-select" required>
+                                    <option value="" selected disabled>-- Select a Course --</option>
+                                    {% for course in courses %}
+                                        <option value="{{ course.id }}">{{ course.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="source" class="form-label fw-bold">How did you hear about us?</label>
+                                <select name="source" class="form-select">
+                                    <option value="" selected disabled>-- Select Source --</option>
+                                    {% for source in sources %}
+                                        <option value="{{ source.id }}">{{ source.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm">Submit Enquiry</button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="/" class="back-link">
+                        &larr; Back to Home
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

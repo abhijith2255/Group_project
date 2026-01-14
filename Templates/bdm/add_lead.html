@@ -4,185 +4,148 @@
 
 {% block extra_css %}
 <style>
-    /* Form specific styles */
-    .form-card {
-        background: white;
-        border-radius: 16px;
-        box-shadow: var(--card-shadow);
-        overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.02);
+    /* Gradient Card Style */
+    .card-enquiry {
+        border: none;
+        border-radius: 15px;
     }
-    
-    .form-header {
-        background: var(--primary-gradient);
-        padding: 25px;
+    .header-enquiry {
+        background: linear-gradient(45deg, #0d6efd, #0a58ca); /* Blue Gradient */
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+        padding: 20px;
+    }
+    .btn-save {
+        background-color: #0d6efd;
+        border: none;
+        padding: 12px 40px;
+        font-weight: 500;
+        border-radius: 50px; /* Rounded pill style */
+    }
+    .btn-save:hover {
+        background-color: #0b5ed7;
         color: white;
     }
-    
-    .form-label { font-weight: 600; font-size: 0.85rem; color: #525f7f; margin-bottom: 8px; }
-    .form-control, .form-select {
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        padding: 10px 15px;
-        font-size: 0.9rem;
-        background-color: #f8f9fa;
+    .form-label {
+        font-weight: 600;
+        color: #444;
     }
-    .form-control:focus, .form-select:focus {
-        background-color: white;
-        border-color: #5e72e4;
-        box-shadow: 0 0 0 3px rgba(94, 114, 228, 0.15);
-    }
-
-    .btn-submit {
-        background: #5e72e4; color: white; border: none;
-        padding: 12px 30px; border-radius: 10px; font-weight: 600;
-        box-shadow: 0 4px 6px rgba(50, 50, 93, 0.11);
-        transition: all 0.2s;
-    }
-    .btn-submit:hover { transform: translateY(-2px); background: #324cdd; color: white; }
 </style>
 {% endblock %}
 
-{% block page_title %}Leads Management{% endblock %}
-{% block page_subtitle %}Add a new potential student{% endblock %}
-
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-0">
-                    <li class="breadcrumb-item"><a href="{% url 'lead_list' %}" class="text-decoration-none text-muted">Leads</a></li>
-                    <li class="breadcrumb-item active text-primary" aria-current="page">New Lead</li>
-                </ol>
-            </nav>
-            <a href="{% url 'lead_list' %}" class="btn btn-light text-muted btn-sm rounded-pill px-3">
-                <i class="fas fa-times me-1"></i> Cancel
-            </a>
-        </div>
-
-        <div class="form-card">
-            <div class="form-header">
-                <h4 class="mb-1 fw-bold">Create New Lead</h4>
-                <p class="mb-0 opacity-75 small">Enter candidate details and interest.</p>
-            </div>
+<div class="container mt-4 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-8">
             
-            <div class="p-4 p-md-5">
-                <form method="POST">
-                    {% csrf_token %}
-                    
-                    <div class="row g-4">
-                        <div class="col-md-6 border-end-md">
-                            <h6 class="text-primary text-uppercase fw-bold small mb-3">
-                                <i class="fas fa-user-circle me-1"></i> Personal Info
-                            </h6>
-                            
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <label class="form-label">First Name <span class="text-danger">*</span></label>
-                                    <input type="text" name="first_name" class="form-control" placeholder="e.g. Rahul" required>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label">Last Name</label>
-                                    <input type="text" name="last_name" class="form-control" placeholder="e.g. Kumar">
-                                </div>
-                            </div>
+            <div class="card shadow-lg card-enquiry">
+                
+                <div class="card-header header-enquiry text-center">
+                    <h3 class="mb-0">Add New Lead</h3>
+                    <small class="text-white-50">Internal BDM Form</small>
+                </div>
+                
+                <div class="card-body p-4">
 
-                            <div class="row g-2 mb-3">
-                                <div class="col-4">
-                                    <label class="form-label">Age</label>
-                                    <input type="number" name="age" class="form-control" placeholder="24">
-                                </div>
-                                <div class="col-4">
-                                    <label class="form-label">Gender</label>
-                                    <select name="gender" class="form-select">
-                                        <option value="">Select...</option>
-                                        <option value="Male">Male</option>
-                                        <option value="Female">Female</option>
-                                        <option value="Other">Other</option>
-                                    </select>
-                                </div>
-                                <div class="col-4">
-                                    <label class="form-label">Qualif.</label>
-                                    <input type="text" name="qualification" class="form-control" placeholder="B.Tech">
-                                </div>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
+                        {% endfor %}
+                    {% endif %}
 
-                            <div class="mb-3">
-                                <label class="form-label">Email Address <span class="text-danger">*</span></label>
-                                <input type="email" name="email" class="form-control" placeholder="rahul@example.com" required>
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="first_name" placeholder="John" required>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label">Phone Number <span class="text-danger">*</span></label>
-                                <input type="tel" name="phone" class="form-control" placeholder="9876543210" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">City / Location</label>
-                                <input type="text" name="city" class="form-control" placeholder="e.g. Bangalore">
+                            <div class="col-md-6">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" name="last_name" placeholder="Doe">
                             </div>
                         </div>
 
-                        <div class="col-md-6 ps-md-4">
-                            <h6 class="text-primary text-uppercase fw-bold small mb-3">
-                                <i class="fas fa-bullseye me-1"></i> Interest & Source
-                            </h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" name="phone" placeholder="9876543210" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" name="email" placeholder="john@example.com" required>
+                            </div>
+                        </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Interested Course <span class="text-danger">*</span></label>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="city" class="form-label">City</label>
+                                <input type="text" class="form-control" name="city" placeholder="e.g. Mumbai">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Age</label>
+                                <input type="number" class="form-control" name="age" placeholder="24">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Gender</label>
+                                <select name="gender" class="form-select">
+                                    <option value="" selected disabled>-- Select --</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="course_id" class="form-label">Interested Course <span class="text-danger">*</span></label>
                                 <select name="course_id" class="form-select" required>
-                                    <option value="">-- Select Course --</option>
+                                    <option value="" selected disabled>-- Select a Course --</option>
                                     {% for course in courses %}
-                                        <option value="{{ course.id }}">{{ course.name }} (₹{{ course.price }})</option>
+                                        <option value="{{ course.id }}">{{ course.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Lead Source</label>
+                            <div class="col-md-6">
+                                <label for="source_id" class="form-label">Lead Source</label>
                                 <select name="source_id" class="form-select">
-                                    <option value="">-- Select Source --</option>
+                                    <option value="" selected disabled>-- Select Source --</option>
                                     {% for source in sources %}
                                         <option value="{{ source.id }}">{{ source.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
+                        </div>
 
-                            <div class="row g-2 mb-3">
-                                <div class="col-6">
-                                    <label class="form-label">Lead Status</label>
-                                    <select name="status" class="form-select">
-                                        <option value="NEW" selected>New Lead</option>
-                                        <option value="CONTACTED">Contacted</option>
-                                        <option value="INTERESTED">Interested / Hot</option>
-                                    </select>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label">Payment Type</label> <select name="payment_type" class="form-select">
-                                        <option value="">Select...</option>
-                                        <option value="One-Time">One-Time</option>
-                                        <option value="Installment">Installment</option>
-                                        <option value="Loan">Loan</option>
-                                    </select>
-                                </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Qualification</label>
+                                <input type="text" class="form-control" name="qualification" placeholder="e.g. B.Tech">
                             </div>
-
-                            <div class="alert alert-light border mt-4">
-                                <small class="d-block text-muted mb-1"><i class="fas fa-info-circle me-1"></i> Note:</small>
-                                <small class="text-secondary">Lead will be assigned to <strong>{{ request.user.first_name }}</strong> automatically.</small>
-                            </div>
-
-                            <div class="mt-4 text-end">
-                                <button type="submit" class="btn btn-submit">
-                                    <i class="fas fa-save me-2"></i> Save Lead
-                                </button>
+                            <div class="col-md-6">
+                                <label class="form-label">Status</label>
+                                <select name="status" class="form-select">
+                                    <option value="NEW" selected>New Lead</option>
+                                    <option value="CONTACTED">Contacted</option>
+                                    <option value="INTERESTED">Interested</option>
+                                    <option value="CONVERTED">Converted</option>
+                                </select>
                             </div>
                         </div>
-                    </div>
-                </form>
+
+                        <div class="d-grid mt-4 text-center">
+                            <button type="submit" class="btn btn-save shadow-sm">Submit Lead</button>
+                        </div>
+
+                    </form>
+                </div>
             </div>
         </div>
-
     </div>
 </div>
 {% endblock %}
