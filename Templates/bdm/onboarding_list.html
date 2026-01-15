@@ -2,56 +2,70 @@
 {% block title %}Onboarding List | EduPro{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="fw-bold mb-1">Student Onboarding</h4>
-        <p class="text-muted small mb-0">Manage ID cards, LMS access, and welcome kits</p>
+<div class="container-fluid mt-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h4 class="text-gray-800 mb-0">Student Onboarding Status</h4>
     </div>
-</div>
 
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-    <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="bg-light text-uppercase small text-muted">
-                <tr>
-                    <th class="ps-4 py-3">Student Name</th>
-                    <th>Course</th>
-                    <th>Enrollment Date</th>
-                    <th>Status</th>
-                    <th class="text-end pe-4">Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for student in students %}
-                <tr>
-                    <td class="ps-4 fw-bold text-dark">
-                        <div class="d-flex align-items-center">
-                            <span class="bg-light text-primary rounded-circle p-2 me-2 small fw-bold">
-                                {{ student.user.first_name|slice:":1" }}
-                            </span>
-                            {{ student.user.first_name }} {{ student.user.last_name }}
-                        </div>
-                    </td>
-                    <td><span class="badge bg-light text-primary border">{{ student.course.name }}</span></td>
-                    <td class="small text-muted">{{ student.created_at|date:"M d, Y" }}</td>
-                    
-                    <td>
-                        <span class="badge bg-warning bg-opacity-10 text-warning rounded-pill px-2">Pending</span>
-                    </td>
-                    
-                    <td class="text-end pe-4">
-                        <a href="{% url 'onboarding_checklist' student.id %}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
-                            Start Onboarding <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" class="text-center py-5 text-muted">No students found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="card shadow mb-4 border-0 rounded-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light text-secondary">
+                        <tr>
+                            <th class="py-3 ps-4 border-0">Student Name</th>
+                            <th class="py-3 border-0">Course</th>
+                            <th class="py-3 border-0">Onboarding Status</th>
+                            <th class="py-3 text-end pe-4 border-0">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center fw-bold me-3" style="width: 40px; height: 40px;">
+                                        {{ student.user.first_name|slice:":1" }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">{{ student.user.first_name }} {{ student.user.last_name }}</div>
+                                        <div class="small text-muted">ID: {{ student.student_id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <td><span class="badge bg-light text-dark border">{{ student.course.name }}</span></td>
+
+                            <td>
+                                {% if student.onboarding_status == 'Completed' %}
+                                    <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">
+                                        <i class="fas fa-check-circle me-1"></i>Completed
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-warning bg-opacity-10 text-warning-emphasis px-3 py-2 rounded-pill">
+                                        <i class="fas fa-clock me-1"></i>Pending
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-end pe-4">
+                                <a href="{% url 'onboarding_checklist' student.id %}" class="btn btn-sm btn-outline-primary fw-bold rounded-pill px-3">
+                                    <i class="fas fa-list-check me-1"></i> Checklist
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="fas fa-user-slash fa-2x mb-3 text-secondary"></i>
+                                <p>No students found for onboarding.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

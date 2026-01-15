@@ -73,8 +73,20 @@
 
     /* Progress Bar */
     .fee-progress-container { width: 100%; max-width: 140px; }
-    .fee-progress { height: 6px; background-color: #e2e8f0; border-radius: 99px; overflow: hidden; margin-top: 6px; }
-    .fee-progress-bar { background-color: #3b82f6; border-radius: 99px; }
+    .fee-progress { 
+        height: 6px; 
+        background-color: #e2e8f0; 
+        border-radius: 99px; 
+        overflow: hidden; 
+        margin-top: 6px; 
+    }
+    /* FIX APPLIED HERE: Added height: 100% */
+    .fee-progress-bar { 
+        background-color: #3b82f6; 
+        border-radius: 99px; 
+        height: 100%; 
+        transition: width 0.5s ease;
+    }
     .fee-text { font-size: 0.75rem; color: #64748b; font-weight: 500; display: flex; justify-content: space-between; margin-bottom: 2px; }
 
     /* Action Buttons */
@@ -84,9 +96,19 @@
         font-weight: 600;
         border-radius: 6px;
         transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
     }
-    .btn-pay { background-color: #eff6ff; color: #2563eb; border: 1px solid transparent; }
-    .btn-pay:hover { background-color: #2563eb; color: white; }
+    .btn-view-profile { 
+        background-color: #fff; 
+        color: #475569; 
+        border: 1px solid #e2e8f0; 
+    }
+    .btn-view-profile:hover { 
+        background-color: #f8fafc; 
+        color: #1e293b; 
+        border-color: #cbd5e1;
+    }
 </style>
 {% endblock %}
 
@@ -121,33 +143,31 @@
             <tbody>
                 {% for item in students %}
                 <tr>
-<td class="ps-4">
-    <div class="d-flex align-items-center">
-        <a href="{% url 'student_detail' item.obj.id %}" class="me-2">
-            {# --- CORRECTED CHECK: Uses 'profile_image' --- #}
-            {% if item.obj.profile_image %}
-                <img src="{{ item.obj.profile_image.url }}" 
-                     alt="Profile" 
-                     class="rounded-circle" 
-                     style="width: 40px; height: 40px; object-fit: cover;">
-            {% else %}
-                {# --- Fallback to Initials --- #}
-                <div class="avatar-initial">
-                    {{ item.obj.user.first_name|slice:":1" }}{{ item.obj.user.last_name|slice:":1" }}
-                </div>
-            {% endif %}
-        </a>
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center">
+                            <a href="{% url 'student_detail' item.obj.id %}" class="me-2">
+                                {% if item.obj.profile_image %}
+                                    <img src="{{ item.obj.profile_image.url }}" 
+                                         alt="Profile" 
+                                         class="rounded-circle" 
+                                         style="width: 40px; height: 40px; object-fit: cover;">
+                                {% else %}
+                                    <div class="avatar-initial">
+                                        {{ item.obj.user.first_name|slice:":1" }}{{ item.obj.user.last_name|slice:":1" }}
+                                    </div>
+                                {% endif %}
+                            </a>
 
-        <div>
-            <a href="{% url 'student_detail' item.obj.id %}" class="text-dark fw-bold text-decoration-none d-block mb-1" style="line-height: 1;">
-                {{ item.obj.user.first_name }} {{ item.obj.user.last_name }}
-            </a>
-            <span class="text-xs text-muted">
-                ID: <span class="font-monospace text-dark">{{ item.obj.student_id }}</span>
-            </span>
-        </div>
-    </div>
-</td>
+                            <div>
+                                <a href="{% url 'student_detail' item.obj.id %}" class="text-dark fw-bold text-decoration-none d-block mb-1" style="line-height: 1;">
+                                    {{ item.obj.user.first_name }} {{ item.obj.user.last_name }}
+                                </a>
+                                <span class="text-xs text-muted">
+                                    ID: <span class="font-monospace text-dark">{{ item.obj.student_id }}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </td>
 
                     <td>
                         <div class="d-flex flex-column align-items-start gap-1">
@@ -167,7 +187,7 @@
                             <div class="fee-progress">
                                 <div class="fee-progress-bar {% if item.balance <= 0 %}bg-success{% endif %}" 
                                      role="progressbar" 
-                                     style="width: {% widthratio item.paid_amount item.total_fee 100 %}%">
+                                     style="width: {% if item.total_fee > 0 %}{% widthratio item.paid_amount item.total_fee 100 %}{% else %}0{% endif %}%">
                                 </div>
                             </div>
                         </div>
@@ -188,86 +208,11 @@
                     </td>
 
                     <td class="text-end pe-4">
-                        {% if item.balance > 0 %}
-                            <button class="btn btn-pay btn-action" data-bs-toggle="modal" data-bs-target="#payModal{{ item.obj.id }}">
-                                Pay Now
-                            </button>
-                        {% else %}
-                            <button class="btn btn-light btn-sm text-muted border px-3 py-1" disabled style="opacity: 0.7; font-size: 0.75rem;">
-                                <i class="fas fa-check-double me-1"></i> Paid
-                            </button>
-                        {% endif %}
+                        <a href="{% url 'student_detail' item.obj.id %}" class="btn btn-action btn-view-profile shadow-sm">
+                            View Profile
+                        </a>
                     </td>
                 </tr>
-
-                <div class="modal fade" id="payModal{{ item.obj.id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content border-0 shadow-xl rounded-4">
-                            <div class="modal-header border-bottom-0 pb-0 ps-4 pt-4">
-                                <div>
-                                    <h5 class="modal-title fw-bold text-dark">Record Transaction</h5>
-                                    <p class="text-muted small mb-0">For Student: {{ item.obj.user.first_name }} {{ item.obj.user.last_name }}</p>
-                                </div>
-                                <button type="button" class="btn-close me-2 mt-n2" data-bs-dismiss="modal"></button>
-                            </div>
-                            
-                            <div class="modal-body p-4">
-                                <form method="POST" action="{% url 'record_payment' item.obj.id %}">
-                                    {% csrf_token %}
-                                    
-                                    <div class="bg-light rounded-3 p-3 mb-4 border border-dashed d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <span class="d-block text-xs text-uppercase text-muted fw-bold ls-1">Balance Due</span>
-                                            <span class="h4 fw-bold text-danger mb-0">₹{{ item.balance|floatformat:0 }}</span>
-                                        </div>
-                                        <div class="text-end">
-                                            <span class="d-block text-xs text-muted">Total Fee</span>
-                                            <span class="fw-bold text-dark">₹{{ item.total_fee|floatformat:0 }}</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label class="form-label small fw-bold text-secondary text-uppercase ls-1">Amount</label>
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-white border-end-0 text-muted ps-3">₹</span>
-                                            <input type="number" name="amount" class="form-control border-start-0 ps-1 fw-bold text-dark" 
-                                                   max="{{ item.balance }}" placeholder="0.00" required style="font-size: 1.1rem;">
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label class="form-label small fw-bold text-secondary text-uppercase ls-1">Payment Method</label>
-                                        <select name="mode" class="form-select" id="modeSelector{{ item.obj.id }}" onchange="toggleEmiInput('{{ item.obj.id }}')">
-                                            <option value="UPI">UPI / Digital Wallet</option>
-                                            <option value="CASH">Cash Payment</option>
-                                            <option value="BANK">Bank Transfer (NEFT/IMPS)</option>
-                                            <option value="CHEQUE">Cheque / DD</option>
-                                            <option value="EMI" class="fw-bold text-primary">Create EMI Schedule</option>
-                                        </select>
-                                    </div>
-
-                                    <div id="emiBox{{ item.obj.id }}" class="bg-primary bg-opacity-10 rounded-3 p-3 mb-4 border border-primary border-opacity-25" style="display: none;">
-                                        <div class="d-flex gap-2 align-items-center text-primary mb-2">
-                                            <i class="fas fa-calculator"></i>
-                                            <span class="fw-bold small">Installment Plan</span>
-                                        </div>
-                                        <label class="small text-muted mb-1">Number of Months</label>
-                                        <input type="number" name="installments" class="form-control" placeholder="e.g. 3" min="1" max="12">
-                                        <div class="form-text text-xs mt-1">
-                                            Remaining balance will be split equally starting next month.
-                                        </div>
-                                    </div>
-
-                                    <div class="d-grid">
-                                        <button type="submit" class="btn btn-primary py-2 fw-bold shadow-sm">
-                                            Confirm Payment <i class="fas fa-arrow-right ms-2 small"></i>
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 {% empty %}
                 <tr>
                     <td colspan="5" class="text-center py-5">
@@ -290,18 +235,4 @@
 
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function toggleEmiInput(studentId) {
-        var mode = document.getElementById('modeSelector' + studentId).value;
-        var emiBox = document.getElementById('emiBox' + studentId);
-        
-        if (mode === 'EMI') {
-            emiBox.style.display = 'block';
-            // Optional: Auto-focus the input
-            emiBox.querySelector('input').focus();
-        } else {
-            emiBox.style.display = 'none';
-        }
-    }
-</script>
 {% endblock %}

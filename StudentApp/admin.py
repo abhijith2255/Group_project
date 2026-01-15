@@ -16,7 +16,8 @@ class CourseAdmin(admin.ModelAdmin):
     search_fields = ('name',)
     
     def duration_info(self, obj):
-        return f"{obj.batches.count()} Batches Running"
+        # FIX: Change 'batches' to 'batch_set'
+        return f"{obj.batch_set.count()} Batches Running"
     duration_info.short_description = 'Status'
 
 @admin.register(Batch)

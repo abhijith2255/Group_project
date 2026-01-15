@@ -1,16 +1,30 @@
 {% extends 'bdm/base.html' %}
+{% load static %}
+
 {% block title %}Edit Course | EduPro{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-4">
+<div class="row justify-content-center mt-4 mb-5">
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm rounded-4">
+            
             <div class="card-header bg-warning-subtle py-3 border-bottom">
                 <h5 class="fw-bold mb-0 text-warning-emphasis">
                     <i class="fas fa-edit me-2"></i>Edit Course: {{ course.name }}
                 </h5>
             </div>
+            
             <div class="card-body p-4">
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     
@@ -23,9 +37,9 @@
                             <label class="form-label small fw-bold text-secondary">Update Image</label>
                             <input type="file" name="image" class="form-control" accept="image/*">
                             {% if course.image %}
-                                <div class="mt-2">
-                                    <small class="text-muted">Current:</small>
-                                    <img src="{{ course.image.url }}" alt="Current" class="rounded ms-2" style="height: 30px;">
+                                <div class="mt-2 d-flex align-items-center">
+                                    <small class="text-muted me-2">Current:</small>
+                                    <img src="{{ course.image.url }}" alt="Current" class="rounded border" style="height: 40px; width: 40px; object-fit: cover;">
                                 </div>
                             {% endif %}
                         </div>
@@ -59,8 +73,10 @@
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{% url 'course_list' %}" class="btn btn-light fw-bold px-4">Cancel</a>
-                        <button type="submit" class="btn btn-warning fw-bold px-4 rounded-pill">Update Course</button>
+                        <a href="{% url 'bdm_course_list' %}" class="btn btn-light fw-bold px-4 border">Cancel</a>
+                        <button type="submit" class="btn btn-warning fw-bold px-4 rounded-pill shadow-sm">
+                            <i class="fas fa-save me-2"></i>Update Course
+                        </button>
                     </div>
                 </form>
             </div>

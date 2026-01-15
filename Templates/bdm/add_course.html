@@ -1,15 +1,30 @@
 {% extends 'bdm/base.html' %}
-{% block title %}Add Course | EduPro{% endblock %}
+{% load static %}
+
+{% block title %}Add New Course | EduPro{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-4">
-    <div class="col-lg-8"> <div class="card border-0 shadow-sm rounded-4">
-            <div class="card-header bg-white py-3 border-bottom">
-                <h5 class="fw-bold mb-0 text-primary">
-                    <i class="fas fa-plus-circle me-2"></i>Create New Course
+<div class="row justify-content-center mt-4 mb-5">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm rounded-4">
+            
+            <div class="card-header bg-primary-subtle py-3 border-bottom">
+                <h5 class="fw-bold mb-0 text-primary-emphasis">
+                    <i class="fas fa-book-open me-2"></i>Add New Course
                 </h5>
             </div>
+            
             <div class="card-body p-4">
+                
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
                 <form method="POST" enctype="multipart/form-data">
                     {% csrf_token %}
                     
@@ -27,18 +42,18 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label small fw-bold text-secondary">Total Fees (₹)</label>
-                            <input type="number" name="price" class="form-control" placeholder="e.g. 45000" required>
+                            <input type="number" name="price" class="form-control" placeholder="e.g. 25000" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-bold text-secondary">Duration</label>
-                            <input type="text" name="duration" class="form-control" placeholder="e.g. 6 Months" required>
+                            <input type="text" name="duration" class="form-control" placeholder="e.g. 3 Months" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label small fw-bold text-secondary">Lead Trainer</label>
                             <select name="trainer_id" class="form-select">
-                                <option value="">-- Assign Trainer --</option>
+                                <option value="" selected>-- Assign Trainer --</option>
                                 {% for trainer in trainers %}
-                                <option value="{{ trainer.id }}">{{ trainer.full_name }}</option>
+                                    <option value="{{ trainer.id }}">{{ trainer.full_name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -46,12 +61,15 @@
 
                     <div class="mb-4">
                         <label class="form-label small fw-bold text-secondary">Description</label>
-                        <textarea name="description" class="form-control" rows="3" placeholder="Enter course syllabus summary..."></textarea>
+                        <textarea name="description" class="form-control" rows="4" placeholder="Enter course details..."></textarea>
                     </div>
 
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{% url 'course_list' %}" class="btn btn-light fw-bold px-4">Cancel</a>
-                        <button type="submit" class="btn btn-primary fw-bold px-4 rounded-pill">Save Course</button>
+                        <a href="{% url 'bdm_course_list' %}" class="btn btn-light fw-bold px-4 border">Cancel</a>
+                        
+                        <button type="submit" class="btn btn-primary fw-bold px-4 rounded-pill shadow-sm">
+                            <i class="fas fa-plus me-2"></i>Add Course
+                        </button>
                     </div>
                 </form>
             </div>

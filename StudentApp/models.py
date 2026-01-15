@@ -31,12 +31,11 @@ class Course(models.Model):
 
 class Batch(models.Model):
     name = models.CharField(max_length=100)
-    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    # FIX for Admin Error: Added related_name='batches'
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='batches')
     trainer = models.ForeignKey(Trainer, on_delete=models.SET_NULL, null=True, blank=True)
     start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-    
-    # ADD THIS LINE HERE:
     time_slot = models.CharField(max_length=50, null=True, blank=True) 
 
     def __str__(self):
@@ -63,10 +62,24 @@ class Student(models.Model):
     documents_verified = models.BooleanField(default=False)
     placement_willingness = models.BooleanField(default=True, verbose_name="Willing for Placement")
 
+    # --- FIX for Onboarding Data Saving ---
+    id_card_issued = models.BooleanField(default=False)
+    lms_access_granted = models.BooleanField(default=False)
+    welcome_kit_given = models.BooleanField(default=False)
+    whatsapp_group_added = models.BooleanField(default=False)
+
     def __str__(self):
         name = self.user.first_name if self.user.first_name else self.user.username
         return f"{name} ({self.student_id})"
-
+    @property
+    def onboarding_status(self):
+        # Check if all 4 tasks are True
+        if (self.id_card_issued and 
+            self.lms_access_granted and 
+            self.welcome_kit_given and 
+            self.whatsapp_group_added):
+            return "Completed"
+        return "Pending"
 # ==========================================
 # 3. ADMINISTRATIVE (Admissions, Fees, Docs)
 # ==========================================

@@ -357,20 +357,28 @@ def pay_fee(request):
 def view_id_card(request):
     try:
         student = request.user.student
-    except Student.DoesNotExist:
+    except AttributeError:
         return redirect('dashboard')
 
-    if not student.is_fee_paid or not student.documents_verified:
-        messages.error(request, "ID Card locked! Please complete payment and document verification.")
-        return redirect('dashboard')
+    # --- TEMPORARILY DISABLED SECURITY CHECK ---
+    # Uncomment these lines later when you want to enforce strict rules
+    # if not student.is_fee_paid or not student.documents_verified:
+    #     messages.error(request, "ID Card locked! Please complete payment and document verification.")
+    #     return redirect('dashboard')
 
-    photo_url = student.profile_image.url if student.profile_image else None
+    # Check if photo exists to avoid errors
+    photo_url = None
+    if student.profile_image:
+        photo_url = student.profile_image.url
+    
+    # You might want to pass a default image if none exists
+    # else:
+    #     photo_url = '/static/images/default_avatar.png'
 
     return render(request, 'student/id_card.html', {
         'student': student,
         'photo_url': photo_url
     })
-
 @login_required
 def submit_feedback(request):
     try:
