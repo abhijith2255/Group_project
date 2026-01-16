@@ -48,4 +48,6 @@ urlpatterns = [
     
     # --- THIS IS THE CORRECT ONE (Keep this) ---
     path('lead/convert/<int:lead_id>/', views.register_student_from_lead, name='convert_lead'),
+    path('payments/', views.payment_list, name='payment_list'),
+    path('payments/pending-emis/', views.pending_emi_list, name='pending_emi_list'),
 ]

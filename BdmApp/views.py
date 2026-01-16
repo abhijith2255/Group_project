@@ -935,3 +935,124 @@ def register_student_from_lead(request, lead_id):
 
     context = {'lead': lead, 'batches': batches}
     return render(request, 'bdm/student_register.html', context)
+
+# BdmApp/views.py
+
+@login_required
+@user_passes_test(is_bdm)
+def payment_list(request):
+    """
+    Financial Dashboard: List payments + Total Income + Pending Totals
+    """
+    # 1. Fetch all payment records (for the table)
+    payments = FeePayment.objects.select_related('student__user', 'student__course').all().order_by('-date_paid')
+
+    # 2. Financial Calculations (The "Big Numbers")
+    
+    # A. Total Income (Everything collected so far)
+    total_income = FeePayment.objects.aggregate(total=Sum('amount'))['total'] or 0
+
+    # B. Total Course Value (Total expected revenue from all active students)
+    # We sum the price of the course for every student registered
+    total_expected_revenue = Student.objects.aggregate(total=Sum('course__price'))['total'] or 0
+
+    # C. Total Pending Income (General pending balance)
+    total_pending_income = total_expected_revenue - total_income
+
+    # D. Pending EMIs (Specific scheduled installments that are unpaid)
+    pending_emi_total = FeeInstallment.objects.filter(is_paid=False).aggregate(total=Sum('amount'))['total'] or 0
+    
+    # E. Count of overdue/pending EMI records
+    pending_emi_count = FeeInstallment.objects.filter(is_paid=False).count()
+
+    # 3. Apply Filters (Search, Mode, Date)
+    search_query = request.GET.get('search')
+    mode_filter = request.GET.get('mode')
+    date_filter = request.GET.get('date')
+
+    if search_query:
+        payments = payments.filter(
+            Q(student__user__first_name__icontains=search_query) |
+            Q(student__user__last_name__icontains=search_query) |
+            Q(student__student_id__icontains=search_query)
+        )
+    
+    if mode_filter:
+        payments = payments.filter(mode=mode_filter)
+
+    if date_filter:
+        payments = payments.filter(date_paid=date_filter)
+
+    # 4. Context for Template
+    context = {
+        'payments': payments,
+        
+        # Financial Stats
+        'total_income': total_income,
+        'total_pending_income': total_pending_income,
+        'pending_emi_total': pending_emi_total,
+        'pending_emi_count': pending_emi_count,
+        
+        # Filters (to keep them in the input boxes)
+        'search_query': search_query,
+        'mode_filter': mode_filter,
+        'date_filter': date_filter,
+    }
+    return render(request, 'bdm/payment_list.html', context)
+
+@login_required
+@user_passes_test(is_bdm)
+def pending_emi_list(request):
+    """
+    List all unpaid EMI installments with Overdue Status
+    """
+    today = datetime.date.today()
+    
+    # 1. Fetch all UNPAID installments
+    # We order by 'due_date' so the oldest/most urgent appear first
+    installments = FeeInstallment.objects.filter(is_paid=False).select_related('student__user', 'student__course').order_by('due_date')
+
+    # 2. Apply Search Filter
+    search_query = request.GET.get('search')
+    if search_query:
+        installments = installments.filter(
+            Q(student__user__first_name__icontains=search_query) |
+            Q(student__user__last_name__icontains=search_query) |
+            Q(student__student_id__icontains=search_query)
+        )
+
+    # 3. Apply Course Filter
+    course_filter = request.GET.get('course')
+    if course_filter:
+        installments = installments.filter(student__course__id=course_filter)
+
+    # 4. Calculate Stats
+    total_pending_amount = installments.aggregate(total=Sum('amount'))['total'] or 0
+    total_count = installments.count()
+    
+    # Calculate Overdue (Date is in the past)
+    overdue_qs = installments.filter(due_date__lt=today)
+    overdue_amount = overdue_qs.aggregate(total=Sum('amount'))['total'] or 0
+    overdue_count = overdue_qs.count()
+
+    # 5. Fetch Courses for Filter Dropdown
+    # We import Course here to avoid circular import issues if placed at top
+    from StudentApp.models import Course 
+    courses = Course.objects.all()
+
+    context = {
+        'installments': installments,
+        'today': today,
+        
+        # Stats
+        'total_pending_amount': total_pending_amount,
+        'total_count': total_count,
+        'overdue_amount': overdue_amount,
+        'overdue_count': overdue_count,
+        
+        # Filters
+        'search_query': search_query,
+        'course_filter': course_filter,
+        'courses': courses
+    }
+    return render(request, 'bdm/pending_emi_list.html', context)

@@ -51,13 +51,9 @@ def dashboard(request):
     user = request.user
 
     # --- SCENARIO 1: SUPER ADMIN ---
-    if user.is_superuser:
-        pending_count = PendingAdmission.objects.filter(is_processed=False).count()
-        total_students = Student.objects.count()
-        return render(request, 'bdm/dashboard.html', {
-            'pending_count': pending_count,
-            'total_students': total_students
-        })
+    if user.is_superuser or user.is_staff:
+        # FIX: Don't render here. Redirect to the specialized view that has all the data.
+        return redirect('bdm_dashboard')
 
     # --- SCENARIO 2: TRAINER ---
     elif hasattr(user, 'trainer'):
